@@ -68,6 +68,11 @@ async function gradioCall(base: string, fnName: string, data: any[]): Promise<Gr
   //   Qwen3:    [FileData, optionalMsg]                            → first = FileData
   //   IndexTTS: [{visible, value: FileData, __type__: 'update'}]  → first.value = FileData
   const first = Array.isArray(completePayload) ? completePayload[0] : completePayload
+
+  // Qwen3-TTS 报错时返回 [null, "Error: ..."]，把第二个元素的错误信息提取出来
+  if (!first && Array.isArray(completePayload) && typeof completePayload[1] === 'string') {
+    throw new Error(`Gradio ${fnName} 失败: ${completePayload[1]}`)
+  }
   if (!first || typeof first !== 'object') {
     throw new Error(`Gradio ${fnName} unexpected result: ${JSON.stringify(first).slice(0, 200)}`)
   }

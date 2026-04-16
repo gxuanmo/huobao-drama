@@ -1320,7 +1320,7 @@
               <span class="tag mono">{{ shotVidCount }}/{{ sbs.length }} 已生成</span>
               <div class="flex gap-1" style="margin-left:12px">
                 <button :class="['btn btn-sm', videoGenMode === 'frame' && 'btn-primary']" @click="videoGenMode = 'frame'" title="用首帧/尾帧图生视频（需要先生成分镜图）">首尾帧</button>
-                <button :class="['btn btn-sm', videoGenMode === 'reference' && 'btn-primary']" @click="videoGenMode = 'reference'" title="Seedance 2.0 全能参考：角色图+场景图+道具图直接生视频（跳过生图）">全能参考</button>
+                <button :class="['btn btn-sm', videoGenMode === 'reference' && 'btn-primary']" @click="videoGenMode = 'reference'" title="可灵 Kling v3-omni 全能参考：角色图+场景图+道具图直接生视频（跳过生图）">全能参考</button>
               </div>
               <span v-if="videoGenMode === 'reference'" class="dim" style="font-size:11px;margin-left:6px">角色/场景/道具图自动作为参考</span>
               <div class="ml-auto flex gap-1">
@@ -3189,9 +3189,12 @@ async function genVid(sb) {
     duration: Number(sb.duration || 5),
   }
   if (videoGenMode.value === 'reference') {
-    // 全能参考模式：后端自动收集角色/场景/道具图，不需要首帧
-    Object.assign(params, { reference_mode: 'reference' })
-    if (first) params.first_frame_url = first // 有首帧就带上，没有也行
+    // 全能参考模式：用 Kling v3-omni，后端自动收集角色/场景/道具图
+    Object.assign(params, {
+      reference_mode: 'reference',
+      model: 'kling/kling-v3-omni-video-generation',
+    })
+    if (first) params.first_frame_url = first
     if (last) params.last_frame_url = last
   } else {
     // 首尾帧模式

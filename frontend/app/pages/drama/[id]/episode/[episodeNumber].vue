@@ -950,6 +950,9 @@
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
                   批量生成
                 </button>
+                <button v-if="ttsGeneratedCount > 0" class="btn btn-ghost btn-sm" @click="batchShotTTSAll" title="重新生成所有配音（包括已生成的）">
+                  全部重新生成
+                </button>
               </div>
             </div>
 
@@ -981,7 +984,7 @@
                 <div class="dub-foot">
                   <audio v-if="hasTTS(sb)" :src="'/' + getTTSUrl(sb)" controls preload="none" class="dub-audio" />
                   <div v-else class="dim" style="font-size:12px">尚未生成语音文件</div>
-                  <button class="btn btn-sm ml-auto" @click="genShotTTS(sb)">生成配音</button>
+                  <button class="btn btn-sm ml-auto" @click="genShotTTS(sb)">{{ hasTTS(sb) ? '重新生成' : '生成配音' }}</button>
                 </div>
               </div>
             </div>
@@ -3039,6 +3042,21 @@ async function genShotTTS(sb) {
     toast.success(`镜头 #${sb.storyboard_number || sb.storyboardNumber || sb.id} 配音已生成`)
     await refresh()
   } catch (e) { toast.error(e.message) }
+}
+async function batchShotTTSAll() {
+  const all = sbs.value.filter(sb => hasDialogue(sb))
+  if (!all.length) { toast.info('当前没有可生成的对白或旁白'); return }
+  if (!window.confirm(`确认重新生成全部 ${all.length} 条配音？已有的音频会被覆盖。`)) return
+  toast.success(`已提交 ${all.length} 条配音任务`)
+  void Promise.allSettled(all.map(sb => storyboardAPI.generateTTS(sb.id))).then(results => {
+    const ok = results.filter(r => r.status === 'fulfilled').length
+    if (ok) toast.success(`已重新生成 ${ok} 条配音`)
+    if (results.length - ok) toast.error(`${results.length - ok} 条失败`)
+  })
+  watchAsyncResult(() => all.every(sb => {
+    const cur = sbs.value.find(s => s.id === sb.id)
+    return !!(cur?.tts_audio_url || cur?.ttsAudioUrl)
+  }))
 }
 async function batchShotTTS() {
   const pending = sbs.value.filter(sb => hasDialogue(sb) && !hasTTS(sb))

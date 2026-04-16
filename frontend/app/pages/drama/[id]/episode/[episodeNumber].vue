@@ -1318,12 +1318,12 @@
             <div class="prod-section-bar">
               <span class="dim" style="font-size:12px">{{ sbs.length }} 个镜头</span>
               <span class="tag mono">{{ shotVidCount }}/{{ sbs.length }} 已生成</span>
-              <div class="flex gap-1" style="margin-left:12px">
-                <button :class="['btn btn-sm', videoGenMode === 'frame' && 'btn-primary']" @click="videoGenMode = 'frame'" title="用首帧/尾帧图生视频（需要先生成分镜图）">首尾帧</button>
-                <button :class="['btn btn-sm', videoGenMode === 'reference' && 'btn-primary']" @click="videoGenMode = 'reference'" title="可灵 Kling v3-omni 全能参考：角色图+场景图+道具图直接生视频（跳过生图）">全能参考</button>
-              </div>
-              <span v-if="videoGenMode === 'reference'" class="dim" style="font-size:11px;margin-left:6px">角色/场景/道具图自动作为参考</span>
-              <div class="ml-auto flex gap-1">
+              <span class="tag">{{ lockedVideoConfigLabel }}</span>
+              <div class="ml-auto flex gap-1" style="align-items:center">
+                <span class="dim" style="font-size:11px;margin-right:4px">生成方式</span>
+                <button :class="['btn btn-sm', videoGenMode === 'frame' && 'btn-primary']" @click="videoGenMode = 'frame'" title="用首帧/尾帧图生视频（wan2.7-i2v，需要先生成分镜图）">首尾帧</button>
+                <button :class="['btn btn-sm', videoGenMode === 'reference' && 'btn-primary']" @click="videoGenMode = 'reference'" title="可灵 Kling v3-omni：角色图+场景图+道具图直接生视频（跳过生图）">全能参考</button>
+                <span v-if="videoGenMode === 'reference'" class="dim" style="font-size:10px">Kling · 角色/场景/道具自动参考</span>
                 <button class="btn btn-sm" @click="batchVideos">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   批量视频

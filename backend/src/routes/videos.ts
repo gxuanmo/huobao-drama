@@ -12,10 +12,9 @@ app.post('/', async (c) => {
   const body = await c.req.json()
   if (!body.prompt) return badRequest(c, 'prompt is required')
 
-  // 硬校验：视频生成必须至少有首帧图
-  // 分镜可能把首帧存在 image_url / first_frame_url 两个字段里，任一非空即可
+  // 首尾帧模式需要首帧图；全能参考模式不需要（靠角色/场景参考图直接生成）
   const firstFrame = body.first_frame_url || body.image_url
-  if (!firstFrame) {
+  if (!firstFrame && body.reference_mode !== 'reference') {
     return badRequest(c, '分镜缺少首帧图，请先在"镜头图片"tab 生成首帧后再生成视频')
   }
 

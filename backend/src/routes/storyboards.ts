@@ -21,21 +21,7 @@ function parseDialogueForTTS(dialogue?: string | null) {
   return { speaker, pureText, ignorable }
 }
 
-function syncStoryboardCharacters(storyboardId: number, characterIds: number[]) {
-  db.delete(schema.storyboardCharacters)
-    .where(eq(schema.storyboardCharacters.storyboardId, storyboardId))
-    .run()
-
-  const uniqueIds = [...new Set((characterIds || []).filter(Boolean))]
-  if (!uniqueIds.length) return
-
-  for (const characterId of uniqueIds) {
-    db.insert(schema.storyboardCharacters).values({
-      storyboardId,
-      characterId,
-    }).run()
-  }
-}
+import { syncStoryboardCharacters, syncStoryboardProps as _syncProps } from '../db/helpers.js'
 
 function getStoryboardCharacterIds(storyboardId: number) {
   return db.select().from(schema.storyboardCharacters)
@@ -43,16 +29,8 @@ function getStoryboardCharacterIds(storyboardId: number) {
     .map(link => link.characterId)
 }
 
-function syncStoryboardProps(storyboardId: number, propIds: number[]) {
-  db.delete(schema.storyboardProps)
-    .where(eq(schema.storyboardProps.storyboardId, storyboardId))
-    .run()
-  const uniqueIds = [...new Set((propIds || []).filter(Boolean))]
-  if (!uniqueIds.length) return
-  for (const propId of uniqueIds) {
-    db.insert(schema.storyboardProps).values({ storyboardId, propId }).run()
-  }
-}
+// syncStoryboardProps imported from db/helpers.ts as _syncProps
+const syncStoryboardProps = _syncProps
 
 function getStoryboardPropIds(storyboardId: number) {
   return db.select().from(schema.storyboardProps)

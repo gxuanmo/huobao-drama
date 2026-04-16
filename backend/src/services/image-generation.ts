@@ -300,23 +300,7 @@ async function handleImageComplete(id: number, provider: string, imageUrl: strin
     .run()
   logTaskSuccess('ImageTask', 'downloaded', { id, provider, localPath })
 
-  // 更新关联表
-  if (record?.storyboardId) {
-    const sbUpdate: Record<string, any> = { updatedAt: now() }
-    if (record.frameType === 'first_frame') sbUpdate.firstFrameImage = localPath
-    else if (record.frameType === 'last_frame') sbUpdate.lastFrameImage = localPath
-    else sbUpdate.composedImage = localPath
-    db.update(schema.storyboards).set(sbUpdate).where(eq(schema.storyboards.id, record.storyboardId)).run()
-  }
-  if (record?.characterId) {
-    db.update(schema.characters).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.characters.id, record.characterId)).run()
-  }
-  if (record?.sceneId) {
-    db.update(schema.scenes).set({ imageUrl: localPath, status: 'completed', updatedAt: now() }).where(eq(schema.scenes.id, record.sceneId)).run()
-  }
-  if (record?.propId) {
-    db.update(schema.props).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.props.id, record.propId)).run()
-  }
+  updateLinkedEntities(record, localPath)
 }
 
 async function handleImageCompleteBase64(id: number, provider: string, base64Data: string, mimeType: string) {
@@ -330,21 +314,25 @@ async function handleImageCompleteBase64(id: number, provider: string, base64Dat
     .run()
   logTaskSuccess('ImageTask', 'saved-base64', { id, provider, mimeType, localPath })
 
-  // 更新关联表
-  if (record?.storyboardId) {
+  updateLinkedEntities(record, localPath)
+}
+
+function updateLinkedEntities(record: any, localPath: string) {
+  if (!record) return
+  if (record.storyboardId) {
     const sbUpdate: Record<string, any> = { updatedAt: now() }
     if (record.frameType === 'first_frame') sbUpdate.firstFrameImage = localPath
     else if (record.frameType === 'last_frame') sbUpdate.lastFrameImage = localPath
     else sbUpdate.composedImage = localPath
     db.update(schema.storyboards).set(sbUpdate).where(eq(schema.storyboards.id, record.storyboardId)).run()
   }
-  if (record?.characterId) {
+  if (record.characterId) {
     db.update(schema.characters).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.characters.id, record.characterId)).run()
   }
-  if (record?.sceneId) {
+  if (record.sceneId) {
     db.update(schema.scenes).set({ imageUrl: localPath, status: 'completed', updatedAt: now() }).where(eq(schema.scenes.id, record.sceneId)).run()
   }
-  if (record?.propId) {
+  if (record.propId) {
     db.update(schema.props).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.props.id, record.propId)).run()
   }
 }

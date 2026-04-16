@@ -6,6 +6,12 @@ import { generateVoiceSample } from '../services/tts-generation.js'
 import { generateImage } from '../services/image-generation.js'
 import { logTaskError, logTaskStart, logTaskSuccess } from '../utils/task-logger.js'
 
+function buildCharImagePrompt(char: { imagePrompt?: string | null; name: string; appearance?: string | null; description?: string | null }) {
+  return (char.imagePrompt && char.imagePrompt.trim())
+    ? char.imagePrompt
+    : `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
+}
+
 const app = new Hono()
 
 // PUT /characters/:id
@@ -101,10 +107,7 @@ app.post('/:id/generate-image', async (c) => {
   const [ep] = db.select().from(schema.episodes).where(eq(schema.episodes.id, Number(body.episode_id))).all()
   if (!ep) return badRequest(c, 'Episode not found')
 
-  // 优先使用用户自定义的 image_prompt；否则按默认模板拼接
-  const prompt = (char.imagePrompt && char.imagePrompt.trim())
-    ? char.imagePrompt
-    : `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
+  const prompt = buildCharImagePrompt(char)
   try {
     logTaskStart('CharacterImage', 'generate', { characterId: id, episodeId: ep.id, dramaId: char.dramaId, customPrompt: !!char.imagePrompt })
     const genId = await generateImage({ characterId: id, dramaId: char.dramaId, prompt, configId: ep.imageConfigId ?? undefined })
@@ -127,9 +130,7 @@ app.post('/batch-generate-images', async (c) => {
   for (const cid of ids) {
     const [char] = db.select().from(schema.characters).where(eq(schema.characters.id, cid)).all()
     if (!char) continue
-    const prompt = (char.imagePrompt && char.imagePrompt.trim())
-      ? char.imagePrompt
-      : `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
+    const prompt = buildCharImagePrompt(char)
     try {
       const genId = await generateImage({ characterId: cid, dramaId: char.dramaId, prompt, configId: ep.imageConfigId ?? undefined })
       results.push(genId)

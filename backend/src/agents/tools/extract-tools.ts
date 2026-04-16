@@ -274,11 +274,11 @@ export function createExtractTools(episodeId: number, dramaId: number) {
         dramaId,
         names: propItems.map(p => p.name).join(','),
       })
+      const allProps = db.select().from(schema.props)
+        .where(eq(schema.props.dramaId, dramaId)).all()
+        .filter(x => !x.deletedAt)
       for (const p of propItems) {
-        const existing = db.select().from(schema.props)
-          .where(eq(schema.props.dramaId, dramaId)).all()
-          .filter(x => !x.deletedAt)
-          .find(x => x.name === p.name)
+        const existing = allProps.find(x => x.name === p.name)
         if (existing) {
           db.update(schema.props).set({
             type: p.type || existing.type,

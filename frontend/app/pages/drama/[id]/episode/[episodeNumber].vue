@@ -2683,45 +2683,24 @@ const currentSubStageLabel = computed(() => {
   return current?.label || currentStageLabel.value
 })
 
-async function updateCharField(c, field, value) {
-  const original = c[field] ?? ''
+async function updateEntityField(apiUpdate, entity, field, value, aliases) {
   const next = (value ?? '').trim()
-  if (next === (original ?? '').trim()) return
+  if (next === ((entity[field] ?? '').trim())) return
   try {
-    await characterAPI.update(c.id, { [field]: next })
-    c[field] = next
-    // 同步 camelCase 兼容
-    if (field === 'image_prompt') c.imagePrompt = next
-    if (field === 'appearance') c.appearance = next
+    await apiUpdate(entity.id, { [field]: next })
+    entity[field] = next
+    if (aliases) { for (const a of aliases) entity[a] = next }
     toast.success('已保存')
   } catch (err) {
     toast.error(err.message || '保存失败')
   }
 }
-
-async function updateSceneField(s, field, value) {
-  const next = (value ?? '').trim()
-  if (next === ((s[field] ?? '').trim())) return
-  try {
-    await sceneAPI.update(s.id, { [field]: next })
-    s[field] = next
-    toast.success('已保存')
-  } catch (err) {
-    toast.error(err.message || '保存失败')
-  }
+function updateCharField(c, field, value) {
+  const aliases = field === 'image_prompt' ? ['imagePrompt'] : field === 'appearance' ? ['appearance'] : undefined
+  return updateEntityField(characterAPI.update, c, field, value, aliases)
 }
-
-async function updatePropField(p, field, value) {
-  const next = (value ?? '').trim()
-  if (next === ((p[field] ?? '').trim())) return
-  try {
-    await propAPI.update(p.id, { [field]: next })
-    p[field] = next
-    toast.success('已保存')
-  } catch (err) {
-    toast.error(err.message || '保存失败')
-  }
-}
+function updateSceneField(s, field, value) { return updateEntityField(sceneAPI.update, s, field, value) }
+function updatePropField(p, field, value) { return updateEntityField(propAPI.update, p, field, value) }
 
 async function createProp() {
   const name = window.prompt('道具名称？', '')
@@ -2859,11 +2838,8 @@ watch(scriptContent, v => { localScript.value = v }, { immediate: true })
 async function refresh() {
   try {
     drama.value = await dramaAPI.get(dramaId)
-    // drama.props 由后端 dramas 路由一并返回；也兜底调一次 propAPI.list
-    props.value = drama.value?.props || []
-    if (!props.value.length) {
-      try { props.value = await propAPI.list(dramaId) } catch { props.value = [] }
-    }
+    // 优先从 drama 附带数据取；fallback 到独立接口
+    props.value = drama.value?.props?.length ? drama.value.props : await propAPI.list(dramaId).catch(() => [])
     const ep = drama.value.episodes?.find(e => (e.episode_number || e.episodeNumber) === episodeNumber)
     if (ep) {
       episode.value = ep

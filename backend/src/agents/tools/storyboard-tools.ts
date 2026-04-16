@@ -8,33 +8,7 @@ import { db, schema } from '../../db/index.js'
 import { eq } from 'drizzle-orm'
 import { now } from '../../utils/response.js'
 import { logTaskProgress, logTaskSuccess } from '../../utils/task-logger.js'
-
-function syncStoryboardCharacters(storyboardId: number, characterIds: number[]) {
-  db.delete(schema.storyboardCharacters)
-    .where(eq(schema.storyboardCharacters.storyboardId, storyboardId))
-    .run()
-
-  const uniqueIds = [...new Set(characterIds.filter(Boolean))]
-  if (!uniqueIds.length) return
-
-  for (const characterId of uniqueIds) {
-    db.insert(schema.storyboardCharacters).values({
-      storyboardId,
-      characterId,
-    }).run()
-  }
-}
-
-function syncStoryboardProps(storyboardId: number, propIds: number[]) {
-  db.delete(schema.storyboardProps)
-    .where(eq(schema.storyboardProps.storyboardId, storyboardId))
-    .run()
-  const uniqueIds = [...new Set((propIds || []).filter(Boolean))]
-  if (!uniqueIds.length) return
-  for (const propId of uniqueIds) {
-    db.insert(schema.storyboardProps).values({ storyboardId, propId }).run()
-  }
-}
+import { syncStoryboardCharacters, syncStoryboardProps } from '../../db/helpers.js'
 
 function getEpisodeSceneIds(episodeId: number) {
   return new Set(

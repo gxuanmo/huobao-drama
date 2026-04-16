@@ -374,3 +374,25 @@ ensureColumn('characters', 'image_prompt', 'TEXT')
 export const db = drizzle(sqlite, { schema })
 export { schema }
 export type DB = typeof db
+
+// 启动时清理僵尸 processing 记录
+// 进程重启后轮询丢失，这些任务永远不会完成
+;(() => {
+  const cutoff = new Date(Date.now() - 30 * 60_000).toISOString()
+  const msg = '进程重启，任务中断（可重新生成）'
+
+  const imgResult = sqlite.prepare(
+    `UPDATE image_generations SET status='failed', error_msg=?, updated_at=?
+     WHERE status='processing' AND created_at < ?`
+  ).run(msg, new Date().toISOString(), cutoff)
+
+  const vidResult = sqlite.prepare(
+    `UPDATE video_generations SET status='failed', error_msg=?, updated_at=?
+     WHERE status='processing' AND created_at < ?`
+  ).run(msg, new Date().toISOString(), cutoff)
+
+  const total = (imgResult.changes || 0) + (vidResult.changes || 0)
+  if (total > 0) {
+    console.log(`[DB] 启动清理: ${imgResult.changes} 张图片 + ${vidResult.changes} 个视频 processing 记录已标记为 failed`)
+  }
+})()

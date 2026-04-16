@@ -1324,6 +1324,11 @@
             <div class="prod-section-bar">
               <span class="dim" style="font-size:12px">{{ sbs.length }} 个镜头</span>
               <span class="tag mono">{{ shotVidCount }}/{{ sbs.length }} 已生成</span>
+              <div class="flex gap-1" style="margin-left:12px">
+                <button :class="['btn btn-sm', videoGenMode === 'frame' && 'btn-primary']" @click="videoGenMode = 'frame'" title="用首帧/尾帧图生视频（需要先生成分镜图）">首尾帧</button>
+                <button :class="['btn btn-sm', videoGenMode === 'reference' && 'btn-primary']" @click="videoGenMode = 'reference'" title="Seedance 2.0 全能参考：角色图+场景图+道具图直接生视频（跳过生图）">全能参考</button>
+              </div>
+              <span v-if="videoGenMode === 'reference'" class="dim" style="font-size:11px;margin-left:6px">角色/场景/道具图自动作为参考</span>
               <div class="ml-auto flex gap-1">
                 <button class="btn btn-sm" @click="batchVideos">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -1367,15 +1372,16 @@
                   <button
                     class="btn btn-sm"
                     :class="{ 'btn-danger': videoFailMessage(sb.id) && !isPendingVideo(sb.id) }"
-                    :disabled="isPendingVideo(sb.id) || !getFirstFrame(sb)"
-                    :title="!getFirstFrame(sb) ? '需要先生成首帧图才能生成视频' : (videoFailMessage(sb.id) ? '上次失败，点击重试' : '')"
+                    :disabled="isPendingVideo(sb.id) || (videoGenMode === 'frame' && !getFirstFrame(sb))"
+                    :title="videoGenMode === 'frame' && !getFirstFrame(sb) ? '需要先生成首帧图才能生成视频' : (videoFailMessage(sb.id) ? '上次失败，点击重试' : '')"
                     @click="genVid(sb)">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                     {{
                       isPendingVideo(sb.id) ? '生成中'
-                      : !getFirstFrame(sb) ? '缺首帧'
+                      : videoGenMode === 'frame' && !getFirstFrame(sb) ? '缺首帧'
                       : videoFailMessage(sb.id) ? '重试生成'
                       : hasVid(sb) ? '重新生成'
+                      : videoGenMode === 'reference' ? '全能参考生成'
                       : '生成视频'
                     }}
                   </button>
@@ -1871,6 +1877,7 @@ const pendingShotFrameKeys = ref([])
 const pendingVideoIds = ref([])
 const pendingComposeIds = ref([])
 const failedVideoMessages = ref({})
+const videoGenMode = ref('frame') // 'frame' = 首尾帧图生视频, 'reference' = Seedance 2.0 全能参考
 const failedComposeMessages = ref({})
 const imageViewer = ref({ open: false, src: '', title: '' })
 
@@ -3160,8 +3167,9 @@ async function genShotFrame(sb, frameType) {
 
 async function genVid(sb) {
   const first = getFirstFrame(sb)
-  // 前端软校验：必须有首帧，否则直接拒绝，避免无效请求
-  if (!first) {
+  const last = getLastFrame(sb)
+  // 首尾帧模式需要首帧；全能参考模式不需要
+  if (videoGenMode.value === 'frame' && !first) {
     toast.warning(`镜头 #${sb.storyboard_number || sb.storyboardNumber || sb.id} 还没有首帧图，请先生成首帧`)
     return
   }
@@ -3171,11 +3179,19 @@ async function genVid(sb) {
     prompt: sb.video_prompt || sb.videoPrompt || '',
     duration: Number(sb.duration || 5),
   }
-  const last = getLastFrame(sb)
-  const refs = getRefs(sb)
-  if (first && last) { Object.assign(params, { reference_mode: 'first_last', first_frame_url: first, last_frame_url: last }) }
-  else if (refs.length) { Object.assign(params, { reference_mode: 'multiple', reference_image_urls: [first, ...refs].filter(Boolean) }) }
-  else if (first) { Object.assign(params, { reference_mode: 'single', image_url: first }) }
+  if (videoGenMode.value === 'reference') {
+    // 全能参考模式：后端自动收集角色/场景/道具图，不需要首帧
+    Object.assign(params, { reference_mode: 'reference' })
+    if (first) params.first_frame_url = first // 有首帧就带上，没有也行
+    if (last) params.last_frame_url = last
+  } else {
+    // 首尾帧模式
+    const last = getLastFrame(sb)
+    const refs = getRefs(sb)
+    if (first && last) { Object.assign(params, { reference_mode: 'first_last', first_frame_url: first, last_frame_url: last }) }
+    else if (refs.length) { Object.assign(params, { reference_mode: 'multiple', reference_image_urls: [first, ...refs].filter(Boolean) }) }
+    else if (first) { Object.assign(params, { reference_mode: 'single', image_url: first }) }
+  }
   try {
     delete failedVideoMessages.value[sb.id]
     if (!isPendingVideo(sb.id)) pendingVideoIds.value.push(sb.id)

@@ -9,6 +9,49 @@ import { logTaskError, logTaskPayload, logTaskProgress, logTaskStart, logTaskSuc
 import { fetchWithRetry, formatFetchError } from '../utils/fetch-retry.js'
 import { aiSemaphores } from '../utils/concurrency.js'
 
+/**
+ * 从 storyboard 关联的角色/场景/道具中收集参考图 URL
+ * 用于 Seedance 2.0 全能参考模式
+ */
+function collectStoryboardReferenceImages(storyboardId: number): string[] {
+  const urls: string[] = []
+  const seen = new Set<string>()
+  const push = (url: string | null | undefined) => {
+    if (!url || seen.has(url)) return
+    seen.add(url)
+    urls.push(url)
+  }
+
+  // 关联角色的形象图
+  const charLinks = db.select().from(schema.storyboardCharacters)
+    .where(eq(schema.storyboardCharacters.storyboardId, storyboardId)).all()
+  for (const link of charLinks) {
+    const [char] = db.select().from(schema.characters)
+      .where(eq(schema.characters.id, link.characterId)).all()
+    push(char?.imageUrl)
+  }
+
+  // 关联场景图
+  const [sb] = db.select().from(schema.storyboards)
+    .where(eq(schema.storyboards.id, storyboardId)).all()
+  if (sb?.sceneId) {
+    const [scene] = db.select().from(schema.scenes)
+      .where(eq(schema.scenes.id, sb.sceneId)).all()
+    push(scene?.imageUrl)
+  }
+
+  // 关联道具图
+  const propLinks = db.select().from(schema.storyboardProps)
+    .where(eq(schema.storyboardProps.storyboardId, storyboardId)).all()
+  for (const link of propLinks) {
+    const [prop] = db.select().from(schema.props)
+      .where(eq(schema.props.id, link.propId)).all()
+    push(prop?.imageUrl)
+  }
+
+  return urls.slice(0, 9) // Seedance 2.0 最多 9 张参考图
+}
+
 interface GenerateVideoParams {
   storyboardId?: number
   dramaId?: number
@@ -31,6 +74,16 @@ export async function generateVideo(params: GenerateVideoParams): Promise<number
     : getActiveConfig('video')
   if (!config) throw new Error('No active video AI config')
 
+  // 全能参考模式：自动收集 storyboard 关联的角色/场景/道具图
+  let refUrls = params.referenceImageUrls
+  if (params.referenceMode === 'reference' && !refUrls?.length && params.storyboardId) {
+    refUrls = collectStoryboardReferenceImages(params.storyboardId)
+    logTaskProgress('VideoTask', 'auto-collect-refs', {
+      storyboardId: params.storyboardId,
+      count: refUrls.length,
+    })
+  }
+
   const res = db.insert(schema.videoGenerations).values({
     storyboardId: params.storyboardId,
     dramaId: params.dramaId,
@@ -41,7 +94,7 @@ export async function generateVideo(params: GenerateVideoParams): Promise<number
     imageUrl: params.imageUrl,
     firstFrameUrl: params.firstFrameUrl,
     lastFrameUrl: params.lastFrameUrl,
-    referenceImageUrls: params.referenceImageUrls ? JSON.stringify(params.referenceImageUrls) : null,
+    referenceImageUrls: refUrls?.length ? JSON.stringify(refUrls) : null,
     duration: params.duration || 5,
     aspectRatio: params.aspectRatio || '16:9',
     status: 'processing',

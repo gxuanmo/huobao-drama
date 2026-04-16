@@ -1362,7 +1362,10 @@
                   </div>
                   <div v-if="videoFailMessage(sb.id)" class="prod-error" :title="videoFailMessage(sb.id)">{{ videoFailMessage(sb.id) }}</div>
                 </div>
-                <div class="prod-actions">
+                <div class="prod-actions" style="display:flex;gap:4px;align-items:center">
+                  <button class="btn btn-ghost btn-sm" style="width:26px;height:26px;padding:0" title="编辑 Prompt" @click.stop="openShotPromptDialog(sb)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
                   <button
                     class="btn btn-sm"
                     :class="{ 'btn-danger': videoFailMessage(sb.id) && !isPendingVideo(sb.id) }"
@@ -1628,7 +1631,7 @@
         <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
           <span class="frame-num" style="font-size:14px">#{{ String(shotPromptEditing?.storyboard_number || shotPromptEditing?.storyboardNumber || shotPromptEditing?.id || 0).padStart(2, '0') }}</span>
           <div style="flex:1">
-            <div style="font-size:15px;font-weight:600;font-family:var(--font-display)">{{ shotPromptEditing?.title || shotPromptEditing?.description || '分镜' }} · 图片 Prompt</div>
+            <div style="font-size:15px;font-weight:600;font-family:var(--font-display)">{{ shotPromptEditing?.title || shotPromptEditing?.description || '分镜' }} · Prompt 编辑</div>
             <div class="dim" style="font-size:11px;margin-top:2px">{{ shotPromptEditing?.location || '—' }} · {{ shotPromptEditing?.shot_type || shotPromptEditing?.shotType || '—' }}</div>
           </div>
           <button class="btn btn-ghost btn-icon" @click="shotPromptDialog = false">
@@ -1656,9 +1659,18 @@
               placeholder="Close-up cinematic shot of a young man in ancient Chinese robe, dramatic lighting, 4k high quality..."
             />
           </label>
+          <label class="field">
+            <span class="field-label">视频提示词 (video_prompt)</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">按 3 秒分段的动态画面提示词，用于视频生成。</div>
+            <textarea
+              v-model="shotPromptForm.video_prompt"
+              class="textarea mono"
+              rows="5"
+              placeholder="0-3秒：<location>场景</location>，近景，<role>角色</role>动作描述。<n>3-6秒：..."
+            />
+          </label>
           <div class="dim" style="font-size:11px;line-height:1.6;padding:10px 12px;background:var(--muted, #f4f4f5);border-radius:6px">
-            💡 会自动带场景图 + 出场角色图作为参考图（最多 6 张），生成保持一致的画风。
-            避开审核敏感词：bare / intimate / sensual / nude / slipping off / seductive。
+            图片 prompt 用于生成首帧/尾帧（自动带角色+场景参考图），视频 prompt 用于生成视频。避开审核敏感词。
           </div>
         </div>
         <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);justify-content:flex-end">
@@ -1666,6 +1678,7 @@
           <button class="btn btn-primary" @click="saveShotPrompt(null)">保存</button>
           <button class="btn btn-primary" @click="saveShotPrompt('first_frame')">保存并重生首帧</button>
           <button class="btn btn-primary" @click="saveShotPrompt('last_frame')">保存并重生尾帧</button>
+          <button class="btn btn-primary" @click="saveShotPrompt('video')">保存并生成视频</button>
         </div>
       </div>
     </div>
@@ -1811,30 +1824,36 @@ async function saveCharPrompt(regen) {
 // 分镜 prompt 编辑模态框
 const shotPromptDialog = ref(false)
 const shotPromptEditing = ref(null)
-const shotPromptForm = reactive({ description: '', image_prompt: '' })
+const shotPromptForm = reactive({ description: '', image_prompt: '', video_prompt: '' })
 
 function openShotPromptDialog(sb) {
   shotPromptEditing.value = sb
   shotPromptForm.description = sb.description || ''
   shotPromptForm.image_prompt = sb.image_prompt || sb.imagePrompt || ''
+  shotPromptForm.video_prompt = sb.video_prompt || sb.videoPrompt || ''
   shotPromptDialog.value = true
 }
 
-async function saveShotPrompt(regenFrame) {
+async function saveShotPrompt(regenAction) {
   const sb = shotPromptEditing.value
   if (!sb) return
   try {
     await storyboardAPI.update(sb.id, {
       description: shotPromptForm.description,
       image_prompt: shotPromptForm.image_prompt,
+      video_prompt: shotPromptForm.video_prompt,
     })
     sb.description = shotPromptForm.description
     sb.image_prompt = shotPromptForm.image_prompt
     sb.imagePrompt = shotPromptForm.image_prompt
+    sb.video_prompt = shotPromptForm.video_prompt
+    sb.videoPrompt = shotPromptForm.video_prompt
     toast.success('已保存')
     shotPromptDialog.value = false
-    if (regenFrame === 'first_frame' || regenFrame === 'last_frame') {
-      await genShotFrame(sb, regenFrame)
+    if (regenAction === 'first_frame' || regenAction === 'last_frame') {
+      await genShotFrame(sb, regenAction)
+    } else if (regenAction === 'video') {
+      await genVid(sb)
     }
   } catch (err) {
     toast.error(err.message || '保存失败')

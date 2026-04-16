@@ -56,14 +56,7 @@ export function createVoiceTools(episodeId: number, dramaId: number) {
           language: v.language,
           provider,
         }
-      }) : [
-        { id: 'alloy', name: 'Alloy', gender: '中性', traits: '平衡自然', suitable_for: '旁白、通用', language: '多语言', provider },
-        { id: 'echo', name: 'Echo', gender: '男声', traits: '低沉稳重', suitable_for: '成熟男性、旁白', language: '多语言', provider },
-        { id: 'fable', name: 'Fable', gender: '男声', traits: '温暖富有表现力', suitable_for: '年轻男性、故事叙述', language: '多语言', provider },
-        { id: 'onyx', name: 'Onyx', gender: '男声', traits: '深沉有力', suitable_for: '权威角色、反派', language: '多语言', provider },
-        { id: 'nova', name: 'Nova', gender: '女声', traits: '温柔甜美', suitable_for: '年轻女性、女主', language: '多语言', provider },
-        { id: 'shimmer', name: 'Shimmer', gender: '女声', traits: '明亮活泼', suitable_for: '活泼女性、少女', language: '多语言', provider },
-      ]
+      }) : getFallbackVoices(provider)
 
       const payload = {
         provider,
@@ -104,4 +97,54 @@ function inferGender(name: string, desc: unknown) {
   if (/[男|青年|大爷|学长|boy|man|male]/i.test(text)) return '男声'
   if (/[女|少女|御姐|奶奶|girl|woman|female]/i.test(text)) return '女声'
   return '中性'
+}
+
+/**
+ * Provider 专属的 fallback 音色列表。
+ * 当 ai_voices 表里没有对应 provider 的数据时，用这里的硬编码值代替，
+ * 避免 agent 拿到其它厂商的 voice_id 导致 TTS 调用全部失败。
+ */
+function getFallbackVoices(provider: string) {
+  const p = (provider || '').toLowerCase()
+
+  // Qwen3-TTS 9 个预设 speaker，语言默认中文
+  if (p === 'qwen3-tts' || p === 'qwen3') {
+    return [
+      { id: 'Dylan',    name: 'Dylan',    gender: '男声', traits: '年轻有力',     suitable_for: '男主、青年男性', language: '多语言', provider },
+      { id: 'Aiden',    name: 'Aiden',    gender: '男声', traits: '温暖沉稳',     suitable_for: '成熟男性、暖男', language: '多语言', provider },
+      { id: 'Eric',     name: 'Eric',     gender: '男声', traits: '清朗明快',     suitable_for: '正派角色、学生', language: '多语言', provider },
+      { id: 'Ryan',     name: 'Ryan',     gender: '男声', traits: '磁性低沉',     suitable_for: '反派、酷哥',     language: '多语言', provider },
+      { id: 'Uncle_fu', name: 'Uncle Fu', gender: '男声', traits: '年长厚重',     suitable_for: '长辈、旁白、系统', language: '多语言', provider },
+      { id: 'Serena',   name: 'Serena',   gender: '女声', traits: '清冷优雅',     suitable_for: '高冷校花、大小姐', language: '多语言', provider },
+      { id: 'Vivian',   name: 'Vivian',   gender: '女声', traits: '成熟妩媚',     suitable_for: '御姐、少妇',     language: '多语言', provider },
+      { id: 'Sohee',    name: 'Sohee',    gender: '女声', traits: '甜美纯欲',     suitable_for: '萝莉、纯欲女主', language: '多语言', provider },
+      { id: 'Ono_anna', name: 'Ono Anna', gender: '女声', traits: '俏皮灵动',     suitable_for: '活泼少女、配角', language: '多语言', provider },
+    ]
+  }
+
+  // IndexTTS 用的是"参考音频克隆"模式，voice_id 必须是参考音频 URL，
+  // 没法预设音色列表。让 agent 知道这个约束。
+  if (p === 'index-tts' || p === 'indextts') {
+    return [
+      {
+        id: 'REQUIRES_REFERENCE_AUDIO_URL',
+        name: 'IndexTTS 需参考音频',
+        gender: '中性',
+        traits: '零样本克隆',
+        suitable_for: 'voice_id 必须是 http(s):// 参考音频 URL。本条仅作占位，请手动为角色指定参考音频。',
+        language: '多语言',
+        provider,
+      },
+    ]
+  }
+
+  // 其它 provider（OpenAI/chatfire 等）保持旧的 OpenAI 6 音色
+  return [
+    { id: 'alloy',   name: 'Alloy',   gender: '中性', traits: '平衡自然',     suitable_for: '旁白、通用',       language: '多语言', provider },
+    { id: 'echo',    name: 'Echo',    gender: '男声', traits: '低沉稳重',     suitable_for: '成熟男性、旁白',   language: '多语言', provider },
+    { id: 'fable',   name: 'Fable',   gender: '男声', traits: '温暖富有表现力', suitable_for: '年轻男性、故事叙述', language: '多语言', provider },
+    { id: 'onyx',    name: 'Onyx',    gender: '男声', traits: '深沉有力',     suitable_for: '权威角色、反派',   language: '多语言', provider },
+    { id: 'nova',    name: 'Nova',    gender: '女声', traits: '温柔甜美',     suitable_for: '年轻女性、女主',   language: '多语言', provider },
+    { id: 'shimmer', name: 'Shimmer', gender: '女声', traits: '明亮活泼',     suitable_for: '活泼女性、少女',   language: '多语言', provider },
+  ]
 }

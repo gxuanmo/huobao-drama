@@ -5,6 +5,7 @@
 import { MiniMaxImageAdapter } from './minimax-image'
 import { MiniMaxVideoAdapter } from './minimax-video'
 import { MiniMaxTTSAdapter } from './minimax-tts'
+import { LocalGradioTTSAdapter } from './local-gradio-tts'
 import { OpenAIImageAdapter } from './openai-image'
 import { GeminiImageAdapter } from './gemini-image'
 import { VolcEngineImageAdapter } from './volcengine-image'
@@ -35,8 +36,14 @@ export const videoAdapters: Record<string, VideoProviderAdapter> = {
 }
 
 // TTS Adapter 注册表
+// Qwen3-TTS 和 IndexTTS 共享同一个 Gradio adapter，内部按 provider 分支
+const localGradioTTS = new LocalGradioTTSAdapter()
 export const ttsAdapters: Record<string, TTSProviderAdapter> = {
   minimax: new MiniMaxTTSAdapter(),
+  'qwen3-tts': localGradioTTS,
+  qwen3: localGradioTTS,
+  'index-tts': localGradioTTS,
+  indextts: localGradioTTS,
 }
 
 export function getTTSAdapter(provider: string): TTSProviderAdapter {

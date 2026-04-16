@@ -68,4 +68,36 @@ app.delete('/:id', async (c) => {
   return success(c)
 })
 
+// POST /scenes/clear { drama_id, episode_id? } — 硬删该剧/集所有场景 + 清 join 表
+app.post('/clear', async (c) => {
+  const body = await c.req.json().catch(() => ({}))
+  const dramaId = Number(body.drama_id)
+  const episodeId = body.episode_id ? Number(body.episode_id) : null
+  if (!dramaId) return badRequest(c, 'drama_id is required')
+
+  const allScenes = db.select({ id: schema.scenes.id, episodeId: schema.scenes.episodeId })
+    .from(schema.scenes)
+    .where(eq(schema.scenes.dramaId, dramaId)).all()
+  const targetScenes = episodeId
+    ? allScenes.filter(s => s.episodeId === episodeId)
+    : allScenes
+  const ids = targetScenes.map(s => s.id)
+
+  if (ids.length === 0) {
+    logTaskSuccess('SceneClear', 'noop', { dramaId, episodeId })
+    return success(c, { count: 0 })
+  }
+
+  // 清 join 表
+  for (const id of ids) {
+    db.delete(schema.episodeScenes)
+      .where(eq(schema.episodeScenes.sceneId, id)).run()
+    db.delete(schema.scenes)
+      .where(eq(schema.scenes.id, id)).run()
+  }
+
+  logTaskSuccess('SceneClear', 'done', { dramaId, episodeId, count: ids.length })
+  return success(c, { count: ids.length })
+})
+
 export default app

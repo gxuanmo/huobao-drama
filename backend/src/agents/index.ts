@@ -37,25 +37,40 @@ const DEFAULT_PROMPTS: Record<string, { name: string; instructions: string }> = 
   },
   extractor: {
     name: '角色场景提取',
-    instructions: `你是制片助理，擅长从剧本中提取角色和场景信息，并在提取时与项目已有数据进行智能去重。
+    instructions: `你是制片助理，擅长从剧本中提取角色、场景、道具信息，并在提取时与项目已有数据进行智能去重。
 
 工作流程：
 1. 调用 read_script_for_extraction 读取格式化剧本
-2. 调用 read_existing_characters 读取项目中已存在的角色列表，以及当前集已关联角色
-3. 调用 read_existing_scenes 读取项目中已存在的场景列表，以及当前集已关联场景
-4. 优先围绕当前集剧本，分析本集实际出现的角色和场景
-5. 对每个角色：若同名已存在则合并更新，若不存在则新增
-6. 调用 save_dedup_characters 保存角色（去重合并，自动处理新增和更新，并关联到当前集）
-7. 分析剧本内容，提取本集涉及的所有场景信息
-8. 对每个场景：若同地点+时间段已存在则复用，若不存在则新增
-9. 调用 save_dedup_scenes 保存场景（去重合并，自动处理新增和复用，并关联到当前集）
+2. 调用 read_existing_characters / read_existing_scenes / read_existing_props 读取项目中已存在的数据
+3. 围绕当前集剧本，分析本集实际出现的角色、场景、关键道具
+4. 调用 save_dedup_characters 保存角色（必须为每个角色生成 image_prompt 英文提示词）
+5. 调用 save_dedup_scenes 保存场景（必须为每个场景生成 prompt 英文提示词）
+6. 调用 save_dedup_props 保存道具（必须为每个道具生成 prompt 英文提示词）
 
 去重规则：
-- 角色：按名字精确匹配，同名保留现有（合并信息）
-- 场景：按【地点+时间段】精确匹配；同地点不同时段视为新场景
+- 角色：按名字精确匹配
+- 场景：按【地点+时间段】精确匹配
+- 道具：按名字精确匹配
 
-提取要求：
-- 只提取当前集真实出现或被明确提及、且对当前集叙事有效的角色和场景
+⚠️ 重要：每次保存都必须生成"可直接用于 AI 出图"的英文 prompt
+这是最关键的要求——保存角色/场景/道具时必须同时给出 image_prompt (角色) 或 prompt (场景/道具) 字段，字段内容要满足：
+- 必须是英文，可以直接提交给 Stable Diffusion / DALL-E / Flux 等图像模型
+- 必须电影感十足：加入 cinematic lighting, 4k, high quality, detailed, no text, no watermark 这类词
+- 必须审核友好：**禁止**出现 bare / intimate / sensual / seductive / nude / slipping off / bare shoulder 等敏感词
+- 长度约 30-80 词，结构：[主体描述], [外貌/特征细节], [氛围/光线], [画质修饰词]
+
+英文 prompt 示例：
+- 角色："A young Chinese man in his twenties, wearing a simple white ancient robe, sharp eyes, black long hair tied up, cinematic portrait, warm soft lighting, 4k high quality, consistent art style, no text, no watermark"
+- 场景："Interior of an ancient Chinese cultivation sect assessment hall, white jade platform in the center, traditional wooden pillars and carved beams, noon sunlight through high windows, grand scale, cinematic composition, 4k quality"
+- 道具："An ancient Chinese bronze sword with intricate dragon engravings on the scabbard, displayed on a wooden stand, warm ambient light, highly detailed, 4k"
+
+道具提取原则：
+- 只提取对剧情有意义的关键道具（主角兵器、法宝、信物、符篆、重要饰品等）
+- 过场摆设（桌椅、普通器皿）不需要提取
+- 每个道具描述要能独立支撑一张立绘图
+
+其他提取要求：
+- 只提取当前集真实出现或被明确提及、且对当前集叙事有效的内容
 - 角色要包含完整的外貌特征描述（发型、服装、体态等）
 - 场景要包含光线、色调、氛围等视觉信息
 - 不要遗漏任何有台词或重要动作的角色`,
@@ -78,6 +93,7 @@ const DEFAULT_PROMPTS: Record<string, { name: string; instructions: string }> = 
 - location：镜头地点，应与 scenes 中已有地点保持一致
 - time：时间段，应与 scenes 中已有时间保持一致
 - character_ids：当前镜头涉及的角色 ID 列表，可以为空，也可以包含多个角色；必须从 characters 中选择
+- prop_ids：当前镜头中出镜/被使用的关键道具 ID 列表，可以为空；必须从 read_storyboard_context 返回的 props 中选择。只填真的会被看到的道具（主角手里拿着的剑、桌上的符篆等），不要盲填
 - action：角色动作与表演
 - dialogue：该镜头实际发生的对白或旁白；旁白可写为“旁白：内容”
 - description：镜头概述，用于前端阅读和镜头编辑

@@ -9,9 +9,9 @@ import { redactUrl, logTaskError, logTaskProgress, logTaskSuccess } from '../uti
 const app = new Hono()
 
 const HUOBAO_PRESET_SERVICES = [
-  { serviceType: 'text', label: '文本', provider: 'chatfire', baseUrl: 'https://api.chatfire.site', model: 'gemini-3-pro-preview', priority: 100 },
-  { serviceType: 'image', label: '图片', provider: 'gemini', baseUrl: 'https://api.chatfire.site', model: 'gemini-3-pro-image-preview', priority: 99 },
-  { serviceType: 'video', label: '视频', provider: 'volcengine', baseUrl: 'https://api.chatfire.site/volcengine', model: 'doubao-seedance-1-5-pro-251215', priority: 98 },
+  { serviceType: 'text', label: '文本', provider: 'openai', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'deepseek-v3.2', priority: 100 },
+  { serviceType: 'image', label: '图片', provider: 'ali', baseUrl: 'https://dashscope.aliyuncs.com', model: 'wan2.7-image', priority: 99 },
+  { serviceType: 'video', label: '视频', provider: 'ali', baseUrl: 'https://dashscope.aliyuncs.com', model: 'wan2.7-i2v', priority: 98 },
   { serviceType: 'audio', label: '音频', provider: 'minimax', baseUrl: 'https://api.chatfire.site/minimax', model: 'speech-2.8-hd', priority: 97 },
 ] as const
 
@@ -23,7 +23,7 @@ const HUOBAO_AGENT_DEFAULTS = [
   { agentType: 'grid_prompt_generator', name: '图片提示词生成' },
 ] as const
 
-const HUOBAO_AGENT_MODEL = 'gemini-3-pro-preview'
+const HUOBAO_AGENT_MODEL = 'deepseek-v3.2'
 
 function bearerHeaders(apiKey?: string, withJson = false) {
   const headers: Record<string, string> = {}
@@ -111,6 +111,17 @@ function buildProbe(serviceType: string, provider: string, baseUrl: string, mode
       url: joinProviderUrl(baseUrl, '', '/ent/v2/img2video'),
       headers: viduHeaders(apiKey, true),
       body: {},
+    }
+  }
+
+  // 本地 Gradio TTS (Qwen3-TTS / IndexTTS)
+  // 探活用 GET /gradio_api/info，返回 200 且含 named_endpoints 即算通
+  if (p === 'qwen3-tts' || p === 'qwen3' || p === 'index-tts' || p === 'indextts') {
+    return {
+      method: 'GET',
+      url: joinProviderUrl(baseUrl, '', '/gradio_api/info'),
+      headers: {},
+      body: undefined,
     }
   }
 

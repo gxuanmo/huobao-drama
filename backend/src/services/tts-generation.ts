@@ -45,38 +45,55 @@ export async function generateTTS(params: TTSParams): Promise<string> {
     params,
   })
 
-  const { url, method, headers, body } = adapter.buildGenerateRequest(config, params)
-  logTaskProgress('AudioTask', 'request', {
-    provider: config.provider,
-    voice: params.voice,
-    method,
-    url: redactUrl(url),
-    model: params.model || config.model,
-  })
-  logTaskPayload('AudioTask', 'request payload', {
-    method,
-    url,
-    headers,
-    body,
-  })
+  // 如果 adapter 实现了 generateAudio（比如 Gradio 多步 + 二进制响应），
+  // 直接走它自己的完整流程，跳过 JSON/hex 路径
+  let buffer: Buffer
+  let parsed: { format: string; audioLength?: number; sampleRate?: number }
 
-  const resp = await fetch(url, {
-    method,
-    headers,
-    body: JSON.stringify(body),
-  })
+  if (typeof adapter.generateAudio === 'function') {
+    logTaskProgress('AudioTask', 'request', {
+      provider: config.provider,
+      voice: params.voice,
+      mode: 'generateAudio',
+      baseUrl: redactUrl(config.baseUrl),
+      model: params.model || config.model,
+    })
+    const result = await adapter.generateAudio(config, params)
+    buffer = result.buffer
+    parsed = { format: result.format, audioLength: result.audioLength, sampleRate: result.sampleRate }
+  } else {
+    const { url, method, headers, body } = adapter.buildGenerateRequest(config, params)
+    logTaskProgress('AudioTask', 'request', {
+      provider: config.provider,
+      voice: params.voice,
+      method,
+      url: redactUrl(url),
+      model: params.model || config.model,
+    })
+    logTaskPayload('AudioTask', 'request payload', {
+      method,
+      url,
+      headers,
+      body,
+    })
 
-  if (!resp.ok) {
-    const errText = await resp.text()
-    logTaskError('AudioTask', 'tts-generate', { provider: config.provider, voice: params.voice, status: resp.status, error: errText })
-    throw new Error(`TTS API error ${resp.status}: ${errText}`)
+    const resp = await fetch(url, {
+      method,
+      headers,
+      body: JSON.stringify(body),
+    })
+
+    if (!resp.ok) {
+      const errText = await resp.text()
+      logTaskError('AudioTask', 'tts-generate', { provider: config.provider, voice: params.voice, status: resp.status, error: errText })
+      throw new Error(`TTS API error ${resp.status}: ${errText}`)
+    }
+
+    const result = await resp.json()
+    const parsedOrig = adapter.parseResponse(result)
+    buffer = Buffer.from(parsedOrig.audioHex, 'hex')
+    parsed = { format: parsedOrig.format, audioLength: parsedOrig.audioLength, sampleRate: parsedOrig.sampleRate }
   }
-
-  const result = await resp.json()
-  const parsed = adapter.parseResponse(result)
-
-  // 将 hex 解码为二进制
-  const buffer = Buffer.from(parsed.audioHex, 'hex')
 
   // 保存到本地
   const audioDir = path.join(STORAGE_ROOT, 'audio')

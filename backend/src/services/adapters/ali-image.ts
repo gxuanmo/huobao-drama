@@ -16,7 +16,7 @@ export class AliImageAdapter implements ImageProviderAdapter {
   } {
     const baseUrl = config.baseUrl || 'https://dashscope.aliyuncs.com'
 
-    // wan2.6 使用新版异步接口
+    // wan2.7 使用新版异步接口
     const url = joinProviderUrl(baseUrl, '/api/v1', '/services/aigc/image-generation/generation')
 
     const headers: Record<string, string> = {
@@ -29,7 +29,7 @@ export class AliImageAdapter implements ImageProviderAdapter {
     const size = this.normalizeSize(record.size || '1280*1280')
 
     const body: any = {
-      model: record.model || 'wan2.6-t2i',
+      model: record.model || 'wan2.7-image',
       input: {
         messages: [
           {

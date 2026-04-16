@@ -43,6 +43,23 @@ function getStoryboardCharacterIds(storyboardId: number) {
     .map(link => link.characterId)
 }
 
+function syncStoryboardProps(storyboardId: number, propIds: number[]) {
+  db.delete(schema.storyboardProps)
+    .where(eq(schema.storyboardProps.storyboardId, storyboardId))
+    .run()
+  const uniqueIds = [...new Set((propIds || []).filter(Boolean))]
+  if (!uniqueIds.length) return
+  for (const propId of uniqueIds) {
+    db.insert(schema.storyboardProps).values({ storyboardId, propId }).run()
+  }
+}
+
+function getStoryboardPropIds(storyboardId: number) {
+  return db.select().from(schema.storyboardProps)
+    .where(eq(schema.storyboardProps.storyboardId, storyboardId)).all()
+    .map(link => link.propId)
+}
+
 function validateStoryboardBindings(episodeId: number, sceneId: number | null | undefined, characterIds: number[] | undefined) {
   const episodeSceneIds = new Set(
     db.select().from(schema.episodeScenes)
@@ -90,6 +107,7 @@ app.post('/', async (c) => {
     updatedAt: ts,
   }).run()
   syncStoryboardCharacters(Number(res.lastInsertRowid), body.character_ids || [])
+  syncStoryboardProps(Number(res.lastInsertRowid), body.prop_ids || [])
   const [result] = db.select().from(schema.storyboards)
     .where(eq(schema.storyboards.id, Number(res.lastInsertRowid))).all()
   logTaskSuccess('StoryboardAPI', 'create', {
@@ -100,6 +118,7 @@ app.post('/', async (c) => {
   return created(c, {
     ...toSnakeCase(result),
     character_ids: getStoryboardCharacterIds(result.id),
+    prop_ids: getStoryboardPropIds(result.id),
   })
 })
 
@@ -143,10 +162,12 @@ app.put('/:id', async (c) => {
 
   db.update(schema.storyboards).set(updates).where(eq(schema.storyboards.id, id)).run()
   if ('character_ids' in body) syncStoryboardCharacters(id, body.character_ids || [])
+  if ('prop_ids' in body) syncStoryboardProps(id, body.prop_ids || [])
   logTaskSuccess('StoryboardAPI', 'update', {
     storyboardId: id,
     updatedFields: Object.keys(updates),
     characterIds: body.character_ids,
+    propIds: body.prop_ids,
   })
   return success(c)
 })

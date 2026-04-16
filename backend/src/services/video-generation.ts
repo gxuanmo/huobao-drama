@@ -6,6 +6,8 @@ import { downloadFile, readImageAsCompressedDataUrl } from '../utils/storage.js'
 import { getVideoAdapter } from './adapters/registry'
 import type { AIConfig } from './adapters/types'
 import { logTaskError, logTaskPayload, logTaskProgress, logTaskStart, logTaskSuccess, logTaskWarn, redactUrl } from '../utils/task-logger.js'
+import { fetchWithRetry, formatFetchError } from '../utils/fetch-retry.js'
+import { aiSemaphores } from '../utils/concurrency.js'
 
 interface GenerateVideoParams {
   storyboardId?: number
@@ -120,16 +122,24 @@ async function processVideoGeneration(id: number, config: AIConfig) {
       body,
     })
 
-    const resp = await fetch(url, {
-      method,
-      headers,
-      body: JSON.stringify(body),
+    const { taskId, videoUrl, isAsync } = await aiSemaphores.video.run(async () => {
+      logTaskProgress('VideoTask', 'semaphore-acquired', { id, ...aiSemaphores.video.stats })
+      const resp = await fetchWithRetry(url, {
+        method,
+        headers,
+        body: JSON.stringify(body),
+      }, {
+        retryOnStatus: [429, 502, 503, 504],
+        onRetry: (attempt, reason) => logTaskWarn('VideoTask', 'request-retry', {
+          id, attempt, reason: typeof reason === 'object' && reason && 'status' in reason
+            ? `http ${(reason as any).status} wait ${(reason as any).delayMs}ms`
+            : formatFetchError(reason),
+        }),
+      })
+      if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`)
+      const result = await resp.json() as any
+      return adapter.parseGenerateResponse(result)
     })
-
-    if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`)
-    const result = await resp.json() as any
-
-    const { isAsync, taskId, videoUrl } = adapter.parseGenerateResponse(result)
 
     if (!isAsync && videoUrl) {
       logTaskProgress('VideoTask', 'sync-complete', { id, videoUrl })
@@ -153,9 +163,10 @@ async function processVideoGeneration(id: number, config: AIConfig) {
 
     pollVideoTask(id, config, taskId!, record.storyboardId)
   } catch (err: any) {
-    logTaskError('VideoTask', 'process', { id, provider: config.provider, error: err.message })
+    const msg = formatFetchError(err)
+    logTaskError('VideoTask', 'process', { id, provider: config.provider, error: msg })
     db.update(schema.videoGenerations)
-      .set({ status: 'failed', errorMsg: err.message, updatedAt: now() })
+      .set({ status: 'failed', errorMsg: msg, updatedAt: now() })
       .where(eq(schema.videoGenerations.id, id))
       .run()
   }
@@ -210,7 +221,7 @@ async function pollVideoTask(id: number, config: AIConfig, taskId: string, story
         url: redactUrl(url),
         attempt: i + 1,
       })
-      const resp = await fetch(url, { method, headers })
+      const resp = await fetchWithRetry(url, { method, headers })
       if (!resp.ok) continue
       const result = await resp.json() as any
 
@@ -226,15 +237,16 @@ async function pollVideoTask(id: number, config: AIConfig, taskId: string, story
         throw new Error(pollResp.error || 'Video generation failed')
       }
     } catch (err: any) {
+      const errMsg = formatFetchError(err)
       if (i === 299) {
-        logTaskError('VideoTask', 'poll-timeout', { id, taskId, error: err.message })
+        logTaskError('VideoTask', 'poll-timeout', { id, taskId, error: errMsg })
         db.update(schema.videoGenerations)
-          .set({ status: 'failed', errorMsg: `Timeout: ${err.message}`, updatedAt: now() })
+          .set({ status: 'failed', errorMsg: `Timeout: ${errMsg}`, updatedAt: now() })
           .where(eq(schema.videoGenerations.id, id))
           .run()
         return
       }
-      logTaskWarn('VideoTask', 'poll-retry', { id, taskId, attempt: i + 1, error: err.message })
+      logTaskWarn('VideoTask', 'poll-retry', { id, taskId, attempt: i + 1, error: errMsg })
     }
   }
 }

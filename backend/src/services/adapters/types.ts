@@ -140,4 +140,13 @@ export interface TTSProviderAdapter {
     format: string
     channel: number
   }
+
+  // 可选：adapter 自行处理完整的生成流程（多步 HTTP、二进制响应等）
+  // 有此方法时 tts-generation 会直接调用它，跳过 buildGenerateRequest/parseResponse
+  generateAudio?(config: AIConfig, params: any): Promise<{
+    buffer: Buffer
+    format: string
+    sampleRate?: number
+    audioLength?: number
+  }>
 }

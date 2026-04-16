@@ -6,12 +6,15 @@ import { downloadFile, readImageAsCompressedDataUrl, saveBase64Image } from '../
 import { getImageAdapter } from './adapters/registry'
 import type { AIConfig } from './adapters/types'
 import { logTaskError, logTaskPayload, logTaskProgress, logTaskStart, logTaskSuccess, logTaskWarn, redactUrl } from '../utils/task-logger.js'
+import { fetchWithRetry, formatFetchError } from '../utils/fetch-retry.js'
+import { aiSemaphores } from '../utils/concurrency.js'
 
 interface GenerateImageParams {
   storyboardId?: number
   dramaId?: number
   sceneId?: number
   characterId?: number
+  propId?: number
   prompt: string
   model?: string
   size?: string
@@ -32,6 +35,7 @@ export async function generateImage(params: GenerateImageParams): Promise<number
     dramaId: params.dramaId,
     sceneId: params.sceneId,
     characterId: params.characterId,
+    propId: params.propId,
     prompt: params.prompt,
     model: params.model || config.model,
     provider: config.provider,
@@ -110,22 +114,30 @@ async function processImageGeneration(id: number, config: AIConfig) {
       body,
     })
 
-    const resp = await fetch(url, {
-      method,
-      headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(600_000),
+    const { result, isAsync, taskId, imageUrl } = await aiSemaphores.image.run(async () => {
+      logTaskProgress('ImageTask', 'semaphore-acquired', { id, ...aiSemaphores.image.stats })
+      const resp = await fetchWithRetry(url, {
+        method,
+        headers,
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(600_000),
+      }, {
+        retryOnStatus: [429, 502, 503, 504],
+        onRetry: (attempt, reason) => logTaskWarn('ImageTask', 'request-retry', {
+          id, attempt, reason: typeof reason === 'object' && reason && 'status' in reason
+            ? `http ${(reason as any).status} wait ${(reason as any).delayMs}ms`
+            : formatFetchError(reason),
+        }),
+      })
+      if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`)
+      const result = await resp.json() as any
+      logTaskPayload('ImageTask', 'response payload', {
+        id,
+        provider: config.provider,
+        result,
+      })
+      return { result, ...adapter.parseGenerateResponse(result) }
     })
-
-    if (!resp.ok) throw new Error(`API error ${resp.status}: ${await resp.text()}`)
-    const result = await resp.json() as any
-    logTaskPayload('ImageTask', 'response payload', {
-      id,
-      provider: config.provider,
-      result,
-    })
-
-    const { isAsync, taskId, imageUrl } = adapter.parseGenerateResponse(result)
 
     if (!isAsync && imageUrl) {
       logTaskProgress('ImageTask', 'sync-complete', { id, imageUrl })
@@ -153,9 +165,10 @@ async function processImageGeneration(id: number, config: AIConfig) {
     logTaskProgress('ImageTask', 'poll-start', { id, taskId, provider: config.provider })
     pollImageTask(id, config, taskId!)
   } catch (err: any) {
-    logTaskError('ImageTask', 'process', { id, provider: config.provider, error: err.message })
+    const msg = formatFetchError(err)
+    logTaskError('ImageTask', 'process', { id, provider: config.provider, error: msg })
     db.update(schema.imageGenerations)
-      .set({ status: 'failed', errorMsg: err.message, updatedAt: now() })
+      .set({ status: 'failed', errorMsg: msg, updatedAt: now() })
       .where(eq(schema.imageGenerations.id, id))
       .run()
   }
@@ -233,7 +246,7 @@ async function pollImageTask(id: number, config: AIConfig, taskId: string) {
         attempt: i + 1,
       })
       const remainingMs = Math.max(1_000, maxDurationMs - (Date.now() - startedAt))
-      const resp = await fetch(url, {
+      const resp = await fetchWithRetry(url, {
         method,
         headers,
         signal: AbortSignal.timeout(remainingMs),
@@ -262,15 +275,16 @@ async function pollImageTask(id: number, config: AIConfig, taskId: string) {
         throw new Error(pollResp.error || 'Generation failed')
       }
     } catch (err: any) {
+      const errMsg = formatFetchError(err)
       if (i === 119 || Date.now() - startedAt >= maxDurationMs) {
-        logTaskError('ImageTask', 'poll-timeout', { id, taskId, error: err.message })
+        logTaskError('ImageTask', 'poll-timeout', { id, taskId, error: errMsg })
         db.update(schema.imageGenerations)
-          .set({ status: 'failed', errorMsg: `Timeout: ${err.message}`, updatedAt: now() })
+          .set({ status: 'failed', errorMsg: `Timeout: ${errMsg}`, updatedAt: now() })
           .where(eq(schema.imageGenerations.id, id))
           .run()
         return
       }
-      logTaskWarn('ImageTask', 'poll-retry', { id, taskId, attempt: i + 1, error: err.message })
+      logTaskWarn('ImageTask', 'poll-retry', { id, taskId, attempt: i + 1, error: errMsg })
     }
   }
 }
@@ -300,6 +314,9 @@ async function handleImageComplete(id: number, provider: string, imageUrl: strin
   if (record?.sceneId) {
     db.update(schema.scenes).set({ imageUrl: localPath, status: 'completed', updatedAt: now() }).where(eq(schema.scenes.id, record.sceneId)).run()
   }
+  if (record?.propId) {
+    db.update(schema.props).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.props.id, record.propId)).run()
+  }
 }
 
 async function handleImageCompleteBase64(id: number, provider: string, base64Data: string, mimeType: string) {
@@ -326,5 +343,8 @@ async function handleImageCompleteBase64(id: number, provider: string, base64Dat
   }
   if (record?.sceneId) {
     db.update(schema.scenes).set({ imageUrl: localPath, status: 'completed', updatedAt: now() }).where(eq(schema.scenes.id, record.sceneId)).run()
+  }
+  if (record?.propId) {
+    db.update(schema.props).set({ imageUrl: localPath, updatedAt: now() }).where(eq(schema.props.id, record.propId)).run()
   }
 }

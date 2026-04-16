@@ -13,7 +13,7 @@ app.put('/:id', async (c) => {
   const id = Number(c.req.param('id'))
   const body = await c.req.json()
   const updates: Record<string, any> = { updatedAt: now() }
-  for (const key of ['name', 'role', 'description', 'appearance', 'personality', 'voiceStyle', 'voiceProvider', 'imageUrl', 'localPath']) {
+  for (const key of ['name', 'role', 'description', 'appearance', 'personality', 'imagePrompt', 'voiceStyle', 'voiceProvider', 'imageUrl', 'localPath']) {
     const snakeKey = key.replace(/[A-Z]/g, m => '_' + m.toLowerCase())
     if (snakeKey in body) updates[key] = body[snakeKey]
     else if (key in body) updates[key] = body[key]
@@ -30,6 +30,38 @@ app.delete('/:id', async (c) => {
   const id = Number(c.req.param('id'))
   db.update(schema.characters).set({ deletedAt: now() }).where(eq(schema.characters.id, id)).run()
   return success(c)
+})
+
+// POST /characters/clear { drama_id } — 软删除该剧所有角色 + 清空 episode_characters 关联
+app.post('/clear', async (c) => {
+  const body = await c.req.json().catch(() => ({}))
+  const dramaId = Number(body.drama_id)
+  if (!dramaId) return badRequest(c, 'drama_id is required')
+
+  const ts = now()
+  const rows = db.select({ id: schema.characters.id })
+    .from(schema.characters)
+    .where(eq(schema.characters.dramaId, dramaId)).all()
+  const ids = rows.map(r => r.id)
+
+  if (ids.length === 0) {
+    logTaskSuccess('CharacterClear', 'noop', { dramaId })
+    return success(c, { count: 0 })
+  }
+
+  // 软删角色
+  db.update(schema.characters)
+    .set({ deletedAt: ts })
+    .where(eq(schema.characters.dramaId, dramaId)).run()
+
+  // 硬删 episode_characters 中引用这些角色的行
+  for (const id of ids) {
+    db.delete(schema.episodeCharacters)
+      .where(eq(schema.episodeCharacters.characterId, id)).run()
+  }
+
+  logTaskSuccess('CharacterClear', 'done', { dramaId, count: ids.length })
+  return success(c, { count: ids.length })
 })
 
 // POST /characters/:id/generate-voice-sample — 生成角色音色试听
@@ -69,9 +101,12 @@ app.post('/:id/generate-image', async (c) => {
   const [ep] = db.select().from(schema.episodes).where(eq(schema.episodes.id, Number(body.episode_id))).all()
   if (!ep) return badRequest(c, 'Episode not found')
 
-  const prompt = `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
+  // 优先使用用户自定义的 image_prompt；否则按默认模板拼接
+  const prompt = (char.imagePrompt && char.imagePrompt.trim())
+    ? char.imagePrompt
+    : `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
   try {
-    logTaskStart('CharacterImage', 'generate', { characterId: id, episodeId: ep.id, dramaId: char.dramaId })
+    logTaskStart('CharacterImage', 'generate', { characterId: id, episodeId: ep.id, dramaId: char.dramaId, customPrompt: !!char.imagePrompt })
     const genId = await generateImage({ characterId: id, dramaId: char.dramaId, prompt, configId: ep.imageConfigId ?? undefined })
     logTaskSuccess('CharacterImage', 'generate', { characterId: id, generationId: genId })
     return success(c, { image_generation_id: genId })
@@ -92,7 +127,9 @@ app.post('/batch-generate-images', async (c) => {
   for (const cid of ids) {
     const [char] = db.select().from(schema.characters).where(eq(schema.characters.id, cid)).all()
     if (!char) continue
-    const prompt = `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
+    const prompt = (char.imagePrompt && char.imagePrompt.trim())
+      ? char.imagePrompt
+      : `${char.name}, ${char.appearance || char.description || '人物立绘'}, 高质量, 正面, 白色背景`
     try {
       const genId = await generateImage({ characterId: cid, dramaId: char.dramaId, prompt, configId: ep.imageConfigId ?? undefined })
       results.push(genId)

@@ -20,10 +20,11 @@ export class AliVideoAdapter implements VideoProviderAdapter {
     const headers: Record<string, string> = {
       'Authorization': `Bearer ${config.apiKey}`,
       'Content-Type': 'application/json',
+      'X-DashScope-Async': 'enable',
     }
 
     const body: any = {
-      model: record.model || 'wan2.6-i2v-flash',
+      model: record.model || 'wan2.7-i2v',
       input: {
         prompt: record.prompt,
         img_url: record.imageUrl ?? record.firstFrameUrl ?? '',

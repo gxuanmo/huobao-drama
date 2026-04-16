@@ -421,7 +421,7 @@ const cfgTestResult = ref(null)
 const cfgForm = reactive({ name: '', provider: '', api_key: '', base_url: '', modelStr: '', service_type: 'text', priority: 0 })
 const huobaoForm = reactive({ apiKey: '' })
 const serviceTypes = [{ type: 'text', label: '文本' }, { type: 'image', label: '图片' }, { type: 'video', label: '视频' }, { type: 'audio', label: '音频' }]
-const providers = ['ali', 'chatfire', 'gemini', 'minimax', 'openai', 'openrouter', 'vidu', 'volcengine']
+const providers = ['ali', 'chatfire', 'gemini', 'minimax', 'openai', 'openrouter', 'vidu', 'volcengine', 'qwen3-tts', 'index-tts']
 const providerSelectOptions = computed(() => providers.map(p => ({ label: p, value: p })))
 const serviceMeta = {
   text: { label: '文本', desc: '剧本改写、角色场景提取、分镜拆解等 Agent 文本能力' },
@@ -447,6 +447,8 @@ const providerPresets = {
   },
   audio: {
     minimax: { label: '火宝音频', baseUrl: 'https://api.chatfire.site/minimax', models: ['speech-2.8-hd'] },
+    'qwen3-tts': { label: '本地 Qwen3-TTS', baseUrl: 'http://192.168.10.124:5001', models: ['0.6B', '1.7B'] },
+    'index-tts': { label: '本地 IndexTTS', baseUrl: 'http://192.168.10.124:5002', models: ['default'] },
   },
 }
 const huobaoPresetCards = [
@@ -464,6 +466,8 @@ const endpointPrefixes = {
   volcengine: '/api/v3',
   ali: '/api/v1',
   vidu: '/ent/v2',
+  'qwen3-tts': '/gradio_api',
+  'index-tts': '/gradio_api',
 }
 
 const endpointHint = computed(() => {

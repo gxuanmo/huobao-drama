@@ -114,7 +114,7 @@ export function createExtractTools(episodeId: number, dramaId: number) {
   // 4. 智能保存角色（按名字去重，与现有数据合并）
   const saveDedupCharacters = createTool({
     id: 'save_dedup_characters',
-    description: 'Save extracted characters with deduplication. Existing characters (same name) are merged/updated; new ones are created. All are linked to the current episode.',
+    description: 'Save extracted characters with deduplication. Existing characters (same name) are merged/updated; new ones are created. All are linked to the current episode. image_prompt should be a ready-to-use ENGLISH image generation prompt describing the character visually (e.g. "A young man in ancient Chinese white robe, sharp eyes, cinematic lighting, 4k").',
     inputSchema: z.object({
       characters: z.array(z.object({
         name: z.string(),
@@ -122,6 +122,7 @@ export function createExtractTools(episodeId: number, dramaId: number) {
         description: z.string().optional(),
         appearance: z.string().optional(),
         personality: z.string().optional(),
+        image_prompt: z.string().optional().describe('Ready-to-use English image generation prompt for the character portrait. Must be review-friendly: avoid bare/intimate/sensual/nude terms.'),
       })),
     }),
     execute: async ({ characters }) => {
@@ -146,6 +147,7 @@ export function createExtractTools(episodeId: number, dramaId: number) {
             description: char.description || existing.description,
             appearance: char.appearance || existing.appearance,
             personality: char.personality || existing.personality,
+            imagePrompt: char.image_prompt || existing.imagePrompt,
             updatedAt: ts,
           }).where(eq(schema.characters.id, existing.id)).run()
           linkCharToEpisode(episodeId, existing.id)
@@ -158,6 +160,7 @@ export function createExtractTools(episodeId: number, dramaId: number) {
             description: char.description || '',
             appearance: char.appearance || '',
             personality: char.personality || '',
+            imagePrompt: char.image_prompt || '',
             dramaId,
             createdAt: ts,
             updatedAt: ts,
@@ -238,11 +241,77 @@ export function createExtractTools(episodeId: number, dramaId: number) {
     },
   })
 
+  // 6. 读取项目中已存在的道具（用于去重判断）
+  const readExistingProps = createTool({
+    id: 'read_existing_props',
+    description: 'Read all props already existing in this drama project (for deduplication).',
+    inputSchema: z.object({}),
+    execute: async () => {
+      const rows = db.select().from(schema.props)
+        .where(eq(schema.props.dramaId, dramaId)).all()
+        .filter(p => !p.deletedAt)
+      return { count: rows.length, props: rows }
+    },
+  })
+
+  // 7. 智能保存道具（按名字去重）
+  const saveDedupProps = createTool({
+    id: 'save_dedup_props',
+    description: 'Save extracted props (关键物品/道具) with deduplication by name. For each prop, generate a ready-to-use ENGLISH image generation prompt in the "prompt" field.',
+    inputSchema: z.object({
+      props: z.array(z.object({
+        name: z.string(),
+        type: z.string().optional().describe('类型，如 武器/法宝/信物/符篆/饰品 等'),
+        description: z.string().optional().describe('中文描述，外观、材质、历史背景'),
+        prompt: z.string().optional().describe('Ready-to-use English image generation prompt, e.g. "Ancient Chinese jade pendant with dragon pattern, warm lighting, detailed, 4k"'),
+      })),
+    }),
+    execute: async ({ props: propItems }) => {
+      const ts = now()
+      const results = { created: 0, merged: 0 }
+      logTaskProgress('ExtractTool', 'save-props-begin', {
+        episodeId,
+        dramaId,
+        names: propItems.map(p => p.name).join(','),
+      })
+      for (const p of propItems) {
+        const existing = db.select().from(schema.props)
+          .where(eq(schema.props.dramaId, dramaId)).all()
+          .filter(x => !x.deletedAt)
+          .find(x => x.name === p.name)
+        if (existing) {
+          db.update(schema.props).set({
+            type: p.type || existing.type,
+            description: p.description || existing.description,
+            prompt: p.prompt || existing.prompt,
+            updatedAt: ts,
+          }).where(eq(schema.props.id, existing.id)).run()
+          results.merged++
+        } else {
+          db.insert(schema.props).values({
+            dramaId,
+            name: p.name,
+            type: p.type || null,
+            description: p.description || null,
+            prompt: p.prompt || null,
+            createdAt: ts,
+            updatedAt: ts,
+          }).run()
+          results.created++
+        }
+      }
+      logTaskSuccess('ExtractTool', 'save-props-complete', { episodeId, ...results })
+      return { message: `道具保存完成：新增 ${results.created}，合并更新 ${results.merged}`, ...results }
+    },
+  })
+
   return {
     readScriptForExtraction,
     readExistingCharacters,
     readExistingScenes,
+    readExistingProps,
     saveDedupCharacters,
     saveDedupScenes,
+    saveDedupProps,
   }
 }

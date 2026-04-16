@@ -187,11 +187,15 @@
               </div>
             </div>
             <div class="toolbar-right">
-              <span v-if="chars.length" class="char-count">{{ chars.length }} 角色 · {{ scenes.length }} 场景</span>
-              <button v-if="chars.length" class="btn btn-sm" @click="doExtract" :disabled="rn">
+              <span v-if="chars.length" class="char-count">{{ chars.length }} 角色 · {{ scenes.length }} 场景 · {{ props.length }} 道具</span>
+              <button v-if="chars.length" class="btn btn-sm" @click="doExtract" :disabled="rn" title="增量提取：合并到已有角色/场景/道具">
                 <Loader2 v-if="rn && rt === 'extractor'" :size="11" class="animate-spin" />
                 <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 重新提取
+              </button>
+              <button v-if="chars.length || scenes.length || props.length" class="btn btn-ghost btn-sm" @click="clearAndReExtract" :disabled="rn" title="清空所有角色/场景/道具后重新提取">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                清空重提取
               </button>
             </div>
           </div>
@@ -236,14 +240,42 @@
                 <span class="tag tag-accent">{{ chars.length }}</span>
               </div>
               <div class="extract-list">
-                <div v-for="c in chars" :key="c.id" class="extract-row">
-                  <div class="char-avatar">{{ c.name?.[0] || '?' }}</div>
-                  <div class="extract-info">
-                    <div class="extract-name-row">
-                      <div class="extract-name">{{ c.name }}</div>
-                      <span class="tag">{{ c.role || '角色' }}</span>
+                <div v-for="c in chars" :key="c.id" class="extract-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                  <div style="display:flex;align-items:flex-start;gap:10px">
+                    <div class="char-avatar">{{ c.name?.[0] || '?' }}</div>
+                    <div class="extract-info" style="flex:1">
+                      <div class="extract-name-row">
+                        <div class="extract-name">{{ c.name }}</div>
+                        <span class="tag">{{ c.role || '角色' }}</span>
+                      </div>
+                      <div class="extract-meta dim" style="font-size:11px;margin-top:2px">
+                        {{ c.personality || '暂无性格描述' }}
+                      </div>
                     </div>
-                    <div class="extract-meta wrap">{{ c.description || c.appearance || c.personality || '暂无描述' }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;padding-left:42px">
+                    <label class="field">
+                      <span class="field-label" style="font-size:11px">外貌描述 (appearance)</span>
+                      <textarea
+                        :value="c.appearance || c.description || ''"
+                        class="textarea"
+                        rows="2"
+                        placeholder="例：二十岁男青年，剑眉星目，黑色长发，白色道袍..."
+                        @blur="updateCharField(c, 'appearance', $event.target.value)"
+                      />
+                    </label>
+                    <label class="field">
+                      <span class="field-label" style="font-size:11px">
+                        自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      </span>
+                      <textarea
+                        :value="c.image_prompt || c.imagePrompt || ''"
+                        class="textarea mono"
+                        rows="3"
+                        placeholder="留空使用默认模板；填写后将直接作为生成角色图片的 prompt。"
+                        @blur="updateCharField(c, 'image_prompt', $event.target.value)"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>
@@ -256,16 +288,89 @@
                 <span class="tag tag-accent">{{ scenes.length }}</span>
               </div>
               <div class="extract-list">
-                <div v-for="s in scenes" :key="s.id" class="extract-row">
-                  <div class="scene-icon">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  </div>
-                  <div class="extract-info">
-                    <div class="extract-name-row">
-                      <div class="extract-name">{{ s.location }}</div>
-                      <span v-if="s.time" class="tag">{{ s.time }}</span>
+                <div v-for="s in scenes" :key="s.id" class="extract-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                  <div style="display:flex;align-items:flex-start;gap:10px">
+                    <div class="scene-icon">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
-                    <div class="extract-meta wrap">{{ s.description || s.time || '等待补充场景描述' }}</div>
+                    <div class="extract-info" style="flex:1">
+                      <div class="extract-name-row">
+                        <div class="extract-name">{{ s.location }}</div>
+                        <span v-if="s.time" class="tag">{{ s.time }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;padding-left:30px">
+                    <label class="field">
+                      <span class="field-label" style="font-size:11px">场景图片 Prompt（直接用于生成场景图）</span>
+                      <textarea
+                        :value="s.prompt || ''"
+                        class="textarea mono"
+                        rows="3"
+                        placeholder="描述这个场景的视觉内容..."
+                        @blur="updateSceneField(s, 'prompt', $event.target.value)"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card extract-card">
+              <div class="extract-card-head">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 17l8 4 8-4"/></svg>
+                <span>道具</span>
+                <span class="tag tag-accent">{{ props.length }}</span>
+                <button class="btn btn-ghost btn-sm ml-auto" @click="createProp">
+                  <Plus :size="13" /> 添加道具
+                </button>
+              </div>
+              <div v-if="!props.length" class="dim" style="padding:12px;font-size:12px">
+                暂无道具。点击右上"添加道具"手动创建，或在剧本改写时让 extractor 自动提取。
+              </div>
+              <div v-else class="extract-list">
+                <div v-for="p in props" :key="p.id" class="extract-row" style="flex-direction:column;align-items:stretch;gap:8px">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="char-avatar">{{ p.name?.[0] || '?' }}</div>
+                    <div class="extract-info" style="flex:1">
+                      <input
+                        :value="p.name"
+                        class="input"
+                        style="font-weight:600;font-size:13px;border:none;padding:2px 4px;background:transparent"
+                        @blur="updatePropField(p, 'name', $event.target.value)"
+                      />
+                    </div>
+                    <button class="btn btn-sm" :disabled="!p.prompt && !p.description" @click="genPropImg(p.id)">
+                      {{ (p.image_url || p.imageUrl) ? '重新生成' : '生成' }}
+                    </button>
+                    <button class="btn btn-ghost btn-sm" @click="deleteProp(p.id)" title="删除">×</button>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;padding-left:42px">
+                    <label class="field">
+                      <span class="field-label" style="font-size:11px">描述</span>
+                      <textarea
+                        :value="p.description || ''"
+                        class="textarea"
+                        rows="2"
+                        placeholder="道具描述，例如：古铜色的剑鞘，表面刻有龙纹..."
+                        @blur="updatePropField(p, 'description', $event.target.value)"
+                      />
+                    </label>
+                    <label class="field">
+                      <span class="field-label" style="font-size:11px">
+                        图片 Prompt（留空则用"名字 + 描述"自动拼接）
+                      </span>
+                      <textarea
+                        :value="p.prompt || ''"
+                        class="textarea mono"
+                        rows="3"
+                        placeholder="留空使用默认模板；填写后直接作为生成图的 prompt。"
+                        @blur="updatePropField(p, 'prompt', $event.target.value)"
+                      />
+                    </label>
+                    <div v-if="p.image_url || p.imageUrl" style="margin-top:4px">
+                      <img :src="'/' + (p.image_url || p.imageUrl)" style="max-width:120px;border-radius:6px" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -752,7 +857,7 @@
             </div>
             <div class="asset-grid">
               <div v-for="c in visualChars" :key="c.id" class="card asset-card">
-                <div class="asset-cover">
+                <div class="asset-cover" style="position:relative">
                   <img
                     v-if="c.image_url || c.imageUrl"
                     :src="'/' + (c.image_url || c.imageUrl)"
@@ -763,6 +868,13 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   </div>
                   <span class="asset-cover-badge" :class="(c.image_url || c.imageUrl) ? 'is-ready' : (isPendingCharImage(c.id) ? 'is-pending' : '')">{{ (c.image_url || c.imageUrl) ? '已生成' : (isPendingCharImage(c.id) ? '生成中' : '待生成') }}</span>
+                  <button
+                    class="btn btn-icon"
+                    style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);color:#fff;width:26px;height:26px;border-radius:6px;backdrop-filter:blur(4px);border:0"
+                    title="编辑 prompt"
+                    @click.stop="openCharPromptDialog(c)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
                 </div>
                 <div class="asset-body">
                   <div class="asset-name">{{ c.name }}</div>
@@ -771,7 +883,9 @@
                 <div class="asset-foot">
                   <span :class="['dot', (c.image_url || c.imageUrl) && 'ok', isPendingCharImage(c.id) && 'pending']" />
                   <span class="dim" style="font-size:10px">{{ (c.image_url || c.imageUrl) ? '已生成' : (isPendingCharImage(c.id) ? '生成中' : '待生成') }}</span>
-                  <button class="btn btn-sm ml-auto" :disabled="isPendingCharImage(c.id)" @click="genCharImg(c.id)">{{ isPendingCharImage(c.id) ? '生成中' : '生成' }}</button>
+                  <button class="btn btn-sm ml-auto" :disabled="isPendingCharImage(c.id)" @click="genCharImg(c.id)">
+                    {{ isPendingCharImage(c.id) ? '生成中' : ((c.image_url || c.imageUrl) ? '重新生成' : '生成') }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -791,7 +905,7 @@
             </div>
             <div class="asset-grid">
               <div v-for="s in scenes" :key="s.id" class="card asset-card">
-                <div class="asset-cover wide">
+                <div class="asset-cover wide" style="position:relative">
                   <img
                     v-if="s.image_url || s.imageUrl"
                     :src="'/' + (s.image_url || s.imageUrl)"
@@ -802,6 +916,13 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   </div>
                   <span class="asset-cover-badge" :class="(s.image_url || s.imageUrl) ? 'is-ready' : (isPendingSceneImage(s.id) ? 'is-pending' : '')">{{ (s.image_url || s.imageUrl) ? '已生成' : (isPendingSceneImage(s.id) ? '生成中' : '待生成') }}</span>
+                  <button
+                    class="btn btn-icon"
+                    style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);color:#fff;width:26px;height:26px;border-radius:6px;backdrop-filter:blur(4px);border:0"
+                    title="编辑 prompt"
+                    @click.stop="openScenePromptDialog(s)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
                 </div>
                 <div class="asset-body">
                   <div class="asset-name">{{ s.location }}</div>
@@ -810,7 +931,9 @@
                 <div class="asset-foot">
                   <span :class="['dot', (s.image_url || s.imageUrl) && 'ok', isPendingSceneImage(s.id) && 'pending']" />
                   <span class="dim" style="font-size:10px">{{ (s.image_url || s.imageUrl) ? '已生成' : (isPendingSceneImage(s.id) ? '生成中' : '待生成') }}</span>
-                  <button class="btn btn-sm ml-auto" :disabled="isPendingSceneImage(s.id)" @click="genSceneImg(s.id)">{{ isPendingSceneImage(s.id) ? '生成中' : '生成' }}</button>
+                  <button class="btn btn-sm ml-auto" :disabled="isPendingSceneImage(s.id)" @click="genSceneImg(s.id)">
+                    {{ isPendingSceneImage(s.id) ? '生成中' : ((s.image_url || s.imageUrl) ? '重新生成' : '生成') }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -870,8 +993,8 @@
               <span class="dim" style="font-size:12px">{{ sbs.length }} 个镜头</span>
               <span class="tag mono">{{ shotImgCount }}/{{ sbs.length }} 已有帧图</span>
               <span class="tag">{{ lockedImageConfigLabel }}</span>
+              <span class="dim" style="font-size:11px">首帧必需，尾帧可选（手动点击生成）</span>
               <div class="ml-auto flex gap-1">
-                <BaseSelect v-model="frameMode" :options="frameModeOptions" placeholder="帧模式" searchable style="width:100px" />
                 <button v-if="gridImagePath" class="btn btn-sm" @click="reopenGridPreview">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
                   查看当前宫格图
@@ -946,12 +1069,19 @@
                     <div class="frame-top">
                       <span class="frame-num">#{{ String(i+1).padStart(2,'0') }}</span>
                       <span class="frame-badge">{{ sb.shot_type || sb.shotType || '—' }}</span>
+                      <button
+                        class="btn btn-ghost btn-icon ml-auto"
+                        style="width:22px;height:22px"
+                        title="编辑分镜 prompt"
+                        @click.stop="openShotPromptDialog(sb)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                      </button>
                     </div>
                     <div class="frame-desc">{{ sb.description || sb.title || '—' }}</div>
                     <div class="frame-meta">
                       <span :class="['dot', getFirstFrame(sb) && 'ok', isPendingShotFrame(sb.id, 'first_frame') && 'pending']" />
                       <span class="dim" style="font-size:11px">首帧</span>
-                      <span v-if="frameMode === 'first_last'" style="display:flex;align-items:center;gap:4px">
+                      <span style="display:flex;align-items:center;gap:4px">
                         <span :class="['dot', getLastFrame(sb) && 'ok', isPendingShotFrame(sb.id, 'last_frame') && 'pending']" />
                         <span class="dim" style="font-size:11px">尾帧</span>
                       </span>
@@ -977,7 +1107,7 @@
                       </div>
                       <span class="frame-thumb-label">{{ isPendingShotFrame(sb.id, 'first_frame') ? '首帧生成中' : '首帧' }}</span>
                     </div>
-                    <div v-if="frameMode === 'first_last'" class="frame-thumb-wrap">
+                    <div class="frame-thumb-wrap">
                       <div class="frame-thumb" @click.stop="!isPendingShotFrame(sb.id, 'last_frame') && genShotFrame(sb, 'last_frame')">
                         <img
                           v-if="getLastFrame(sb)"
@@ -1186,6 +1316,7 @@
                 </div>
               </div>
             </div>
+
           </div>
 
           <!-- Sub: Videos -->
@@ -1230,12 +1361,23 @@
                     <span :class="['dot', hasImg(sb) && 'ok']" /><span style="font-size:10px">图</span>
                     <span :class="['dot', hasVid(sb) && 'ok', isPendingVideo(sb.id) && 'pending']" /><span style="font-size:10px">{{ isPendingVideo(sb.id) ? '视频生成中' : '视频' }}</span>
                   </div>
-                  <div v-if="videoFailMessage(sb.id)" class="prod-error">{{ videoFailMessage(sb.id) }}</div>
+                  <div v-if="videoFailMessage(sb.id)" class="prod-error" :title="videoFailMessage(sb.id)">{{ videoFailMessage(sb.id) }}</div>
                 </div>
                 <div class="prod-actions">
-                  <button class="btn btn-sm" :disabled="isPendingVideo(sb.id)" @click="genVid(sb)">
+                  <button
+                    class="btn btn-sm"
+                    :class="{ 'btn-danger': videoFailMessage(sb.id) && !isPendingVideo(sb.id) }"
+                    :disabled="isPendingVideo(sb.id) || !getFirstFrame(sb)"
+                    :title="!getFirstFrame(sb) ? '需要先生成首帧图才能生成视频' : (videoFailMessage(sb.id) ? '上次失败，点击重试' : '')"
+                    @click="genVid(sb)">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                    {{ isPendingVideo(sb.id) ? '生成中' : '生成视频' }}
+                    {{
+                      isPendingVideo(sb.id) ? '生成中'
+                      : !getFirstFrame(sb) ? '缺首帧'
+                      : videoFailMessage(sb.id) ? '重试生成'
+                      : hasVid(sb) ? '重新生成'
+                      : '生成视频'
+                    }}
                   </button>
                 </div>
               </div>
@@ -1432,15 +1574,149 @@
       </div>
     </main>
     </div>
+
+    <!-- 角色图片 prompt 编辑模态框 (顶层全局) -->
+    <div v-if="charPromptDialog" class="overlay" @click.self="charPromptDialog = false">
+      <div class="card" style="width:min(640px, 92vw);max-height:90vh;overflow:auto;padding:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <div class="char-avatar" style="width:36px;height:36px;font-size:15px">{{ charPromptEditing?.name?.[0] || '?' }}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;font-family:var(--font-display)">{{ charPromptEditing?.name || '角色' }} · 图片 Prompt 编辑</div>
+            <div class="dim" style="font-size:11px;margin-top:2px">{{ charPromptEditing?.role || '角色' }}</div>
+          </div>
+          <button class="btn btn-ghost btn-icon" @click="charPromptDialog = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <label class="field">
+            <span class="field-label">外貌描述 (appearance)</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">软覆盖：按"姓名 + 外貌 + 默认后缀"拼接 prompt。留空走 extractor 结果。</div>
+            <textarea
+              v-model="charPromptForm.appearance"
+              class="textarea"
+              rows="4"
+              placeholder="例：二十岁男青年，剑眉星目，黑色长发披肩，身穿白色道袍..."
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">自定义图片 Prompt (image_prompt)</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">硬覆盖：填写后直接作为生成图的 prompt，不再拼接。推荐用英文。</div>
+            <textarea
+              v-model="charPromptForm.image_prompt"
+              class="textarea mono"
+              rows="7"
+              placeholder="A young man in ancient Chinese robe, cinematic lighting, 4k high quality, no text watermark"
+            />
+          </label>
+          <div class="dim" style="font-size:11px;line-height:1.6;padding:10px 12px;background:var(--muted, #f4f4f5);border-radius:6px">
+            💡 阿里审核友好提示：避开 bare / intimate / sensual / seductive / nude / slipping off 等敏感词。
+            想要特写/氛围可以用 close-up / romantic atmosphere / dreamy / soft candlelight。
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);justify-content:flex-end">
+          <button class="btn" @click="charPromptDialog = false">取消</button>
+          <button class="btn btn-primary" @click="saveCharPrompt(false)">保存</button>
+          <button class="btn btn-primary" @click="saveCharPrompt(true)">保存并重新生成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分镜图片 prompt 编辑模态框 (顶层全局) -->
+    <div v-if="shotPromptDialog" class="overlay" @click.self="shotPromptDialog = false">
+      <div class="card" style="width:min(680px, 92vw);max-height:90vh;overflow:auto;padding:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <span class="frame-num" style="font-size:14px">#{{ String(shotPromptEditing?.storyboard_number || shotPromptEditing?.storyboardNumber || shotPromptEditing?.id || 0).padStart(2, '0') }}</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;font-family:var(--font-display)">{{ shotPromptEditing?.title || shotPromptEditing?.description || '分镜' }} · 图片 Prompt</div>
+            <div class="dim" style="font-size:11px;margin-top:2px">{{ shotPromptEditing?.location || '—' }} · {{ shotPromptEditing?.shot_type || shotPromptEditing?.shotType || '—' }}</div>
+          </div>
+          <button class="btn btn-ghost btn-icon" @click="shotPromptDialog = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <label class="field">
+            <span class="field-label">画面描述 (description)</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">中文描述，供前端阅读和编辑使用</div>
+            <textarea
+              v-model="shotPromptForm.description"
+              class="textarea"
+              rows="3"
+              placeholder="镜头画面内容..."
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">静态画面提示词 (image_prompt)</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">用于生成首帧 / 尾帧 / 镜头图片的英文 prompt。推荐英文 + 电影感。</div>
+            <textarea
+              v-model="shotPromptForm.image_prompt"
+              class="textarea mono"
+              rows="7"
+              placeholder="Close-up cinematic shot of a young man in ancient Chinese robe, dramatic lighting, 4k high quality..."
+            />
+          </label>
+          <div class="dim" style="font-size:11px;line-height:1.6;padding:10px 12px;background:var(--muted, #f4f4f5);border-radius:6px">
+            💡 会自动带场景图 + 出场角色图作为参考图（最多 6 张），生成保持一致的画风。
+            避开审核敏感词：bare / intimate / sensual / nude / slipping off / seductive。
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);justify-content:flex-end">
+          <button class="btn" @click="shotPromptDialog = false">取消</button>
+          <button class="btn btn-primary" @click="saveShotPrompt(null)">保存</button>
+          <button class="btn btn-primary" @click="saveShotPrompt('first_frame')">保存并重生首帧</button>
+          <button class="btn btn-primary" @click="saveShotPrompt('last_frame')">保存并重生尾帧</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 场景图片 prompt 编辑模态框 (顶层全局) -->
+    <div v-if="scenePromptDialog" class="overlay" @click.self="scenePromptDialog = false">
+      <div class="card" style="width:min(640px, 92vw);max-height:90vh;overflow:auto;padding:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <div class="scene-icon" style="width:36px;height:36px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;font-family:var(--font-display)">{{ scenePromptEditing?.location || '场景' }} · 图片 Prompt 编辑</div>
+            <div class="dim" style="font-size:11px;margin-top:2px">{{ scenePromptEditing?.time || '无时间段' }}</div>
+          </div>
+          <button class="btn btn-ghost btn-icon" @click="scenePromptDialog = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <label class="field">
+            <span class="field-label">场景图片 Prompt</span>
+            <div class="dim" style="font-size:11px;margin-bottom:4px">直接作为生成场景图的 prompt。推荐英文 + 电影感描述。</div>
+            <textarea
+              v-model="scenePromptForm.prompt"
+              class="textarea mono"
+              rows="10"
+              placeholder="Interior of an ancient Chinese fantasy hall, traditional Chinese architecture, cinematic lighting, 4k high quality..."
+            />
+          </label>
+          <div class="dim" style="font-size:11px;line-height:1.6;padding:10px 12px;background:var(--muted, #f4f4f5);border-radius:6px">
+            💡 阿里审核友好提示：避开 bare / intimate / sensual / seductive / nude / slipping off 等敏感词。
+            场景图可多用 cinematic composition / warm lighting / traditional Chinese architecture / dramatic shadows。
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);justify-content:flex-end">
+          <button class="btn" @click="scenePromptDialog = false">取消</button>
+          <button class="btn btn-primary" @click="saveScenePrompt(false)">保存</button>
+          <button class="btn btn-primary" @click="saveScenePrompt(true)">保存并重新生成</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { toast } from 'vue-sonner'
 import {
-  Users, MapPin, Video, ImageIcon, Layers, Mic2, FileText, FolderKanban, Clapperboard, Download,
+  Users, MapPin, Video, ImageIcon, Layers, Mic2, FileText, FolderKanban, Clapperboard, Download, Plus,
 } from 'lucide-vue-next'
-import { dramaAPI, episodeAPI, storyboardAPI, characterAPI, sceneAPI, imageAPI, videoAPI, composeAPI, mergeAPI, gridAPI, aiConfigAPI, voicesAPI } from '~/composables/useApi'
+import { dramaAPI, episodeAPI, storyboardAPI, characterAPI, sceneAPI, propAPI, imageAPI, videoAPI, composeAPI, mergeAPI, gridAPI, aiConfigAPI, voicesAPI } from '~/composables/useApi'
 import { useAgent } from '~/composables/useAgent'
 import BaseSelect from '~/components/BaseSelect.vue'
 
@@ -1450,7 +1726,7 @@ const route = useRoute()
 const dramaId = Number(route.params.id)
 const episodeNumber = Number(route.params.episodeNumber)
 
-const drama = ref(null), episode = ref(null), chars = ref([]), scenes = ref([]), sbs = ref([]), mergeData = ref(null)
+const drama = ref(null), episode = ref(null), chars = ref([]), scenes = ref([]), props = ref([]), sbs = ref([]), mergeData = ref(null)
 const panel = ref('script')
 const { running: rn, runningType: rt, run: runAgent } = useAgent()
 
@@ -1471,7 +1747,6 @@ const prodTabIdx = computed({
   get: () => prodTabDefs.value.findIndex(t => t.id === prodTab.value),
   set: (v) => { prodTab.value = prodTabDefs.value[v]?.id || 'chars' },
 })
-const frameMode = ref('first')
 const fallbackVoiceProfiles = [
   { id: 'alloy', label: 'Alloy', gender: '中性', traits: '平衡、自然、克制', suitable: '通用叙述、旁白、需要稳定输出的角色' },
   { id: 'echo', label: 'Echo', gender: '男声', traits: '低沉、稳重、冷静', suitable: '成熟男性、父辈、旁白、压迫感角色' },
@@ -1488,7 +1763,6 @@ const videoConfigSelectOptions = computed(() => videoConfigs.value.map(c => {
   const label = modelName ? `${modelName} (${c.provider})` : `${c.name} (${c.provider})`
   return { label, value: c.id }
 }))
-const frameModeOptions = [{ label: '仅首帧', value: 'first' }, { label: '首尾帧', value: 'first_last' }]
 const gridLayoutOptions = [
   { label: '2x2', value: '2x2' },
   { label: '3x3', value: '3x3' },
@@ -1500,6 +1774,99 @@ const videoConfigs = ref([])
 const audioConfigs = ref([])
 const pendingCharImageIds = ref([])
 const pendingSceneImageIds = ref([])
+
+// 角色 prompt 编辑模态框
+const charPromptDialog = ref(false)
+const charPromptEditing = ref(null)
+const charPromptForm = reactive({ appearance: '', image_prompt: '' })
+
+function openCharPromptDialog(c) {
+  charPromptEditing.value = c
+  charPromptForm.appearance = c.appearance || ''
+  charPromptForm.image_prompt = c.image_prompt || c.imagePrompt || ''
+  charPromptDialog.value = true
+}
+
+async function saveCharPrompt(regen) {
+  const c = charPromptEditing.value
+  if (!c) return
+  try {
+    await characterAPI.update(c.id, {
+      appearance: charPromptForm.appearance,
+      image_prompt: charPromptForm.image_prompt,
+    })
+    c.appearance = charPromptForm.appearance
+    c.image_prompt = charPromptForm.image_prompt
+    c.imagePrompt = charPromptForm.image_prompt
+    toast.success('已保存')
+    charPromptDialog.value = false
+    if (regen) {
+      await genCharImg(c.id)
+    }
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
+
+// 分镜 prompt 编辑模态框
+const shotPromptDialog = ref(false)
+const shotPromptEditing = ref(null)
+const shotPromptForm = reactive({ description: '', image_prompt: '' })
+
+function openShotPromptDialog(sb) {
+  shotPromptEditing.value = sb
+  shotPromptForm.description = sb.description || ''
+  shotPromptForm.image_prompt = sb.image_prompt || sb.imagePrompt || ''
+  shotPromptDialog.value = true
+}
+
+async function saveShotPrompt(regenFrame) {
+  const sb = shotPromptEditing.value
+  if (!sb) return
+  try {
+    await storyboardAPI.update(sb.id, {
+      description: shotPromptForm.description,
+      image_prompt: shotPromptForm.image_prompt,
+    })
+    sb.description = shotPromptForm.description
+    sb.image_prompt = shotPromptForm.image_prompt
+    sb.imagePrompt = shotPromptForm.image_prompt
+    toast.success('已保存')
+    shotPromptDialog.value = false
+    if (regenFrame === 'first_frame' || regenFrame === 'last_frame') {
+      await genShotFrame(sb, regenFrame)
+    }
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
+
+// 场景 prompt 编辑模态框
+const scenePromptDialog = ref(false)
+const scenePromptEditing = ref(null)
+const scenePromptForm = reactive({ prompt: '' })
+
+function openScenePromptDialog(s) {
+  scenePromptEditing.value = s
+  scenePromptForm.prompt = s.prompt || ''
+  scenePromptDialog.value = true
+}
+
+async function saveScenePrompt(regen) {
+  const s = scenePromptEditing.value
+  if (!s) return
+  try {
+    await sceneAPI.update(s.id, { prompt: scenePromptForm.prompt })
+    s.prompt = scenePromptForm.prompt
+    toast.success('已保存')
+    scenePromptDialog.value = false
+    if (regen) {
+      await genSceneImg(s.id)
+    }
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
 const pendingShotFrameKeys = ref([])
 const pendingVideoIds = ref([])
 const pendingComposeIds = ref([])
@@ -2316,6 +2683,82 @@ const currentSubStageLabel = computed(() => {
   return current?.label || currentStageLabel.value
 })
 
+async function updateCharField(c, field, value) {
+  const original = c[field] ?? ''
+  const next = (value ?? '').trim()
+  if (next === (original ?? '').trim()) return
+  try {
+    await characterAPI.update(c.id, { [field]: next })
+    c[field] = next
+    // 同步 camelCase 兼容
+    if (field === 'image_prompt') c.imagePrompt = next
+    if (field === 'appearance') c.appearance = next
+    toast.success('已保存')
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
+
+async function updateSceneField(s, field, value) {
+  const next = (value ?? '').trim()
+  if (next === ((s[field] ?? '').trim())) return
+  try {
+    await sceneAPI.update(s.id, { [field]: next })
+    s[field] = next
+    toast.success('已保存')
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
+
+async function updatePropField(p, field, value) {
+  const next = (value ?? '').trim()
+  if (next === ((p[field] ?? '').trim())) return
+  try {
+    await propAPI.update(p.id, { [field]: next })
+    p[field] = next
+    toast.success('已保存')
+  } catch (err) {
+    toast.error(err.message || '保存失败')
+  }
+}
+
+async function createProp() {
+  const name = window.prompt('道具名称？', '')
+  if (!name) return
+  try {
+    const row = await propAPI.create({ drama_id: dramaId, name })
+    props.value = [...props.value, row]
+    toast.success('道具已创建')
+  } catch (err) {
+    toast.error(err.message || '创建失败')
+  }
+}
+
+async function deleteProp(id) {
+  if (!window.confirm('确认删除该道具？')) return
+  try {
+    await propAPI.del(id)
+    props.value = props.value.filter(p => p.id !== id)
+    toast.success('已删除')
+  } catch (err) {
+    toast.error(err.message || '删除失败')
+  }
+}
+
+async function genPropImg(id) {
+  try {
+    await propAPI.generateImage(id, epId.value)
+    toast.success('道具图片生成中')
+    watchAsyncResult(() => {
+      const p = props.value.find(item => item.id === id)
+      return !!(p?.image_url || p?.imageUrl)
+    })
+  } catch (err) {
+    toast.error(err.message || '生成失败')
+  }
+}
+
 function updateCharVoice(charId, voiceId) {
   characterAPI.update(charId, { voice_style: voiceId, voice_provider: lockedAudioProvider.value || undefined })
   const c = chars.value.find(ch => ch.id === charId)
@@ -2357,6 +2800,10 @@ function toCamel(field) {
 
 function getStoryboardCharacterIds(sb) {
   return sb?.character_ids || sb?.characterIds || []
+}
+
+function getStoryboardPropIds(sb) {
+  return sb?.prop_ids || sb?.propIds || []
 }
 
 function getStoryboardCharacterNames(sb) {
@@ -2412,6 +2859,11 @@ watch(scriptContent, v => { localScript.value = v }, { immediate: true })
 async function refresh() {
   try {
     drama.value = await dramaAPI.get(dramaId)
+    // drama.props 由后端 dramas 路由一并返回；也兜底调一次 propAPI.list
+    props.value = drama.value?.props || []
+    if (!props.value.length) {
+      try { props.value = await propAPI.list(dramaId) } catch { props.value = [] }
+    }
     const ep = drama.value.episodes?.find(e => (e.episode_number || e.episodeNumber) === episodeNumber)
     if (ep) {
       episode.value = ep
@@ -2452,6 +2904,26 @@ function skipRewrite() {
   scriptStep.value = 2
 }
 function doExtract() { saveScr(); runAgent('extractor', '请从剧本中提取所有角色和场景信息，提取时自动与项目已有数据进行去重合并', dramaId, epId.value, refresh) }
+async function clearAndReExtract() {
+  const total = chars.value.length + scenes.value.length + props.value.length
+  const msg = `确定清空当前剧集的所有提取数据并重新提取吗？\n\n将删除：\n  · ${chars.value.length} 个角色\n  · ${scenes.value.length} 个场景\n  · ${props.value.length} 个道具\n\n此操作不可撤销。`
+  if (total === 0 || !window.confirm(msg)) return
+  try {
+    await Promise.all([
+      characterAPI.clear(dramaId),
+      sceneAPI.clear(dramaId),
+      propAPI.clear(dramaId),
+    ])
+    toast.success('已清空，开始重新提取')
+    chars.value = []
+    scenes.value = []
+    props.value = []
+    saveScr()
+    runAgent('extractor', '请从剧本中重新提取所有角色、场景和道具信息（项目数据已清空，请全量提取）', dramaId, epId.value, refresh)
+  } catch (e) {
+    toast.error(`清空失败: ${e.message || e}`)
+  }
+}
 function doVoice() { runAgent('voice_assigner', '请为所有角色分配合适的音色', dramaId, epId.value, refresh) }
 async function batchGenSamples() {
   const pending = chars.value.filter(c => (c.voice_style || c.voiceStyle) && !(c.voice_sample_url || c.voiceSampleUrl))
@@ -2478,7 +2950,8 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function watchAsyncResult(check, attempts = 24, delay = 2500) {
+// 默认轮询窗口：600 次 × 3s = 30 分钟，覆盖视频/TTS 等慢任务
+function watchAsyncResult(check, attempts = 600, delay = 3000) {
   void (async () => {
     for (let i = 0; i < attempts; i++) {
       await sleep(delay)
@@ -2599,12 +3072,20 @@ async function batchShotTTS() {
     toast.info(ttsEligibleCount.value ? '所有镜头配音已生成' : '当前没有可生成的对白或旁白')
     return
   }
-  const results = await Promise.allSettled(pending.map(sb => storyboardAPI.generateTTS(sb.id)))
-  const okCount = results.filter(r => r.status === 'fulfilled').length
-  const failCount = results.length - okCount
-  if (okCount) toast.success(`已生成 ${okCount} 条镜头配音`)
-  if (failCount) toast.error(`${failCount} 条镜头配音生成失败`)
-  await refresh()
+  const pendingIds = pending.map(sb => sb.id)
+  toast.success(`已提交 ${pending.length} 条配音任务，后台生成中...`)
+  // 后台跑，不 await 整个 Promise.allSettled，让轮询机制负责进度反馈
+  void Promise.allSettled(pending.map(sb => storyboardAPI.generateTTS(sb.id))).then((results) => {
+    const okCount = results.filter(r => r.status === 'fulfilled').length
+    const failCount = results.length - okCount
+    if (okCount) toast.success(`已生成 ${okCount} 条镜头配音`)
+    if (failCount) toast.error(`${failCount} 条镜头配音生成失败`)
+  })
+  // 轮询 refresh 直到所有任务完成（或触及 watchAsyncResult 的超时上限）
+  watchAsyncResult(() => pendingIds.every(id => {
+    const cur = sbs.value.find(s => s.id === id)
+    return !!(cur?.tts_audio_url || cur?.ttsAudioUrl)
+  }))
 }
 
 function getFirstFrame(s) { return s?.first_frame_image || s?.firstFrameImage || null }
@@ -2628,6 +3109,10 @@ function getShotReferenceImages(sb) {
   for (const charId of getStoryboardCharacterIds(sb)) {
     const char = chars.value.find(item => item.id === charId)
     pushRef(char?.image_url || char?.imageUrl)
+  }
+  for (const propId of getStoryboardPropIds(sb)) {
+    const prop = props.value.find(item => item.id === propId)
+    pushRef(prop?.image_url || prop?.imageUrl)
   }
   for (const ref of getRefs(sb)) {
     pushRef(ref)
@@ -2698,13 +3183,18 @@ async function genShotFrame(sb, frameType) {
 }
 
 async function genVid(sb) {
+  const first = getFirstFrame(sb)
+  // 前端软校验：必须有首帧，否则直接拒绝，避免无效请求
+  if (!first) {
+    toast.warning(`镜头 #${sb.storyboard_number || sb.storyboardNumber || sb.id} 还没有首帧图，请先生成首帧`)
+    return
+  }
   const params = {
     storyboard_id: sb.id,
     drama_id: dramaId,
     prompt: sb.video_prompt || sb.videoPrompt || '',
     duration: Number(sb.duration || 5),
   }
-  const first = getFirstFrame(sb)
   const last = getLastFrame(sb)
   const refs = getRefs(sb)
   if (first && last) { Object.assign(params, { reference_mode: 'first_last', first_frame_url: first, last_frame_url: last }) }
@@ -2779,20 +3269,27 @@ async function doCompose(sb) {
   }
 }
 function batchVideos() {
-  const pendingIds = sbs.value.filter(s => !hasVid(s)).map(s => s.id)
-  pendingIds.forEach(id => {
-    const sb = sbs.value.find(item => item.id === id)
-    if (sb) genVid(sb)
-  })
-  if (pendingIds.length) {
-    pendingVideoIds.value = [...new Set([...pendingVideoIds.value, ...pendingIds])]
-    watchAsyncResult(() => pendingIds.every(id => {
-      const target = sbs.value.find(s => s.id === id)
-      const done = !!(target?.video_url || target?.videoUrl)
-      if (done) pendingVideoIds.value = pendingVideoIds.value.filter(item => item !== id)
-      return done
-    }), 80, 4000)
+  const needVideo = sbs.value.filter(s => !hasVid(s))
+  // 分成"能跑"和"缺首帧"两组
+  const ready = needVideo.filter(s => getFirstFrame(s))
+  const skipped = needVideo.filter(s => !getFirstFrame(s))
+  if (skipped.length) {
+    const nums = skipped.map(s => '#' + (s.storyboard_number || s.storyboardNumber || s.id)).join(' ')
+    toast.warning(`以下镜头缺首帧已跳过：${nums}`)
   }
+  if (!ready.length) {
+    if (!skipped.length) toast.info('所有镜头已有视频')
+    return
+  }
+  const pendingIds = ready.map(s => s.id)
+  ready.forEach(sb => genVid(sb))
+  pendingVideoIds.value = [...new Set([...pendingVideoIds.value, ...pendingIds])]
+  watchAsyncResult(() => pendingIds.every(id => {
+    const target = sbs.value.find(s => s.id === id)
+    const done = !!(target?.video_url || target?.videoUrl)
+    if (done) pendingVideoIds.value = pendingVideoIds.value.filter(item => item !== id)
+    return done
+  }))
 }
 async function batchCompose() {
   await composeAPI.all(epId.value)

@@ -25,6 +25,17 @@ function syncStoryboardCharacters(storyboardId: number, characterIds: number[]) 
   }
 }
 
+function syncStoryboardProps(storyboardId: number, propIds: number[]) {
+  db.delete(schema.storyboardProps)
+    .where(eq(schema.storyboardProps.storyboardId, storyboardId))
+    .run()
+  const uniqueIds = [...new Set((propIds || []).filter(Boolean))]
+  if (!uniqueIds.length) return
+  for (const propId of uniqueIds) {
+    db.insert(schema.storyboardProps).values({ storyboardId, propId }).run()
+  }
+}
+
 function getEpisodeSceneIds(episodeId: number) {
   return new Set(
     db.select().from(schema.episodeScenes)
@@ -109,6 +120,19 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
           storyboard_count: s.storyboardCount || 0,
         }))
 
+      // 读取项目道具（供 agent 挑选与镜头关联）
+      const propRows = db.select().from(schema.props)
+        .where(eq(schema.props.dramaId, dramaId)).all()
+        .filter(p => !p.deletedAt)
+      const propItems = propRows.map(p => ({
+        id: p.id,
+        name: p.name,
+        type: p.type || '',
+        description: p.description || '',
+        prompt: p.prompt || '',
+        image_url: p.imageUrl || '',
+      }))
+
       const payload = {
         episode: {
           id: ep.id,
@@ -119,6 +143,7 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
         script,
         characters,
         scenes,
+        props: propItems,
         existing_storyboards: existingStoryboards
           .filter(sb => !sb.deletedAt)
           .map(sb => ({
@@ -129,6 +154,9 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
             character_ids: db.select().from(schema.storyboardCharacters)
               .where(eq(schema.storyboardCharacters.storyboardId, sb.id)).all()
               .map(link => link.characterId),
+            prop_ids: db.select().from(schema.storyboardProps)
+              .where(eq(schema.storyboardProps.storyboardId, sb.id)).all()
+              .map(link => link.propId),
             shot_type: sb.shotType || '',
             duration: sb.duration || 0,
           })),
@@ -138,6 +166,7 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
         dramaId,
         characters: characters.length,
         scenes: scenes.length,
+        props: propItems.length,
         existingStoryboards: payload.existing_storyboards.length,
         scriptLength: script.length,
       })
@@ -169,6 +198,7 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
         duration: z.number().optional(),
         scene_id: z.number().nullable().optional(),
         character_ids: z.array(z.number()).optional(),
+        prop_ids: z.array(z.number()).optional().describe('本镜头出现的关键道具 ID 列表，用于生成时参考道具图'),
       })),
     }),
     execute: async ({ storyboards }) => {
@@ -185,6 +215,9 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
       for (const storyboardId of existingStoryboardIds) {
         db.delete(schema.storyboardCharacters)
           .where(eq(schema.storyboardCharacters.storyboardId, storyboardId))
+          .run()
+        db.delete(schema.storyboardProps)
+          .where(eq(schema.storyboardProps.storyboardId, storyboardId))
           .run()
       }
       db.delete(schema.storyboards).where(eq(schema.storyboards.episodeId, episodeId)).run()
@@ -206,7 +239,9 @@ export function createStoryboardTools(episodeId: number, dramaId: number) {
           sceneId: sb.scene_id, duration: sb.duration || 10,
           createdAt: ts, updatedAt: ts,
         }).run()
-        syncStoryboardCharacters(Number(res.lastInsertRowid), sb.character_ids || [])
+        const newSbId = Number(res.lastInsertRowid)
+        syncStoryboardCharacters(newSbId, sb.character_ids || [])
+        syncStoryboardProps(newSbId, sb.prop_ids || [])
         totalDuration += sb.duration || 10
       }
 

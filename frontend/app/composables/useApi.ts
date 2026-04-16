@@ -64,10 +64,22 @@ export const characterAPI = {
   voiceSample: (id: number, episodeId: number) => api.post(`/characters/${id}/generate-voice-sample`, { episode_id: episodeId }),
   generateImage: (id: number, episodeId: number) => api.post(`/characters/${id}/generate-image`, { episode_id: episodeId }),
   batchImages: (ids: number[], episodeId: number) => api.post('/characters/batch-generate-images', { character_ids: ids, episode_id: episodeId }),
+  clear: (dramaId: number) => api.post('/characters/clear', { drama_id: dramaId }),
 }
 
 export const sceneAPI = {
+  update: (id: number, data: any) => api.put(`/scenes/${id}`, data),
   generateImage: (id: number, episodeId: number) => api.post(`/scenes/${id}/generate-image`, { episode_id: episodeId }),
+  clear: (dramaId: number, episodeId?: number) => api.post('/scenes/clear', { drama_id: dramaId, episode_id: episodeId }),
+}
+
+export const propAPI = {
+  list: (dramaId: number) => api.get(`/props?drama_id=${dramaId}`),
+  create: (data: any) => api.post('/props', data),
+  update: (id: number, data: any) => api.put(`/props/${id}`, data),
+  del: (id: number) => api.del(`/props/${id}`),
+  generateImage: (id: number, episodeId: number) => api.post(`/props/${id}/generate-image`, { episode_id: episodeId }),
+  clear: (dramaId: number) => api.post('/props/clear', { drama_id: dramaId }),
 }
 
 export const imageAPI = {

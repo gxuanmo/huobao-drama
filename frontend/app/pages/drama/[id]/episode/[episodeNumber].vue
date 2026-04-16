@@ -1441,9 +1441,9 @@
                   <div v-if="composeFailMessage(sb.id)" class="prod-error">{{ composeFailMessage(sb.id) }}</div>
                 </div>
                 <div class="prod-actions">
-                  <button class="btn btn-sm" :disabled="!hasVid(sb) || isPendingCompose(sb.id)" @click="doCompose(sb)">
+                  <button class="btn btn-sm" :disabled="!hasVid(sb) || isPendingCompose(sb.id)" :title="!hasVid(sb) ? '需要先生成视频' : ''" @click="doCompose(sb)">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                    {{ isPendingCompose(sb.id) ? '合成中' : (hasComposed(sb) ? '重新合成' : '开始合成') }}
+                    {{ isPendingCompose(sb.id) ? '合成中' : !hasVid(sb) ? '等待视频' : hasComposed(sb) ? '重新合成' : '开始合成' }}
                   </button>
                 </div>
               </div>
@@ -1484,9 +1484,9 @@
                 </div>
                 <div class="empty-title">拼接全集视频</div>
                 <div class="empty-desc">将 {{ composedCount }} 个已合成镜头拼接为完整视频</div>
-                <button class="btn btn-primary" :disabled="composedCount === 0" @click="doMerge" style="margin-top:12px">
+                <button class="btn btn-primary" :disabled="composedCount === 0 || merging" @click="doMerge" style="margin-top:12px">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                  开始拼接
+                  {{ merging ? '拼接中...' : '开始拼接' }}
                 </button>
               </div>
             </template>
@@ -1785,8 +1785,17 @@ const gridLayoutOptions = [
 const imageConfigs = ref([])
 const videoConfigs = ref([])
 const audioConfigs = ref([])
-const pendingCharImageIds = ref([])
-const pendingSceneImageIds = ref([])
+// pending 状态持久化到 sessionStorage，刷新后可恢复
+function persistedRef(key, fallback = []) {
+  const storageKey = `huobao_pending_${key}_${dramaId}`
+  let init = fallback
+  try { const raw = sessionStorage.getItem(storageKey); if (raw) init = JSON.parse(raw) } catch {}
+  const r = ref(init)
+  watch(r, v => { try { sessionStorage.setItem(storageKey, JSON.stringify(v)) } catch {} }, { deep: true })
+  return r
+}
+const pendingCharImageIds = persistedRef('charImg')
+const pendingSceneImageIds = persistedRef('sceneImg')
 
 // 角色 prompt 编辑模态框
 const charPromptDialog = ref(false)
@@ -1886,9 +1895,9 @@ async function saveScenePrompt(regen) {
     toast.error(err.message || '保存失败')
   }
 }
-const pendingShotFrameKeys = ref([])
-const pendingVideoIds = ref([])
-const pendingComposeIds = ref([])
+const pendingShotFrameKeys = persistedRef('shotFrame')
+const pendingVideoIds = persistedRef('video')
+const pendingComposeIds = persistedRef('compose')
 const failedVideoMessages = ref({})
 const videoGenMode = ref('frame') // 'frame' = 首尾帧图生视频, 'reference' = Seedance 2.0 全能参考
 const failedComposeMessages = ref({})
@@ -2758,16 +2767,20 @@ async function genPropImg(id) {
   }
 }
 
-function updateCharVoice(charId, voiceId) {
-  characterAPI.update(charId, { voice_style: voiceId, voice_provider: lockedAudioProvider.value || undefined })
-  const c = chars.value.find(ch => ch.id === charId)
-  if (c) {
-    c.voice_style = voiceId
-    c.voiceStyle = voiceId
-    c.voice_provider = lockedAudioProvider.value || ''
-    c.voiceProvider = lockedAudioProvider.value || ''
-    c.voice_sample_url = ''
-    c.voiceSampleUrl = ''
+async function updateCharVoice(charId, voiceId) {
+  try {
+    await characterAPI.update(charId, { voice_style: voiceId, voice_provider: lockedAudioProvider.value || undefined })
+    const c = chars.value.find(ch => ch.id === charId)
+    if (c) {
+      c.voice_style = voiceId
+      c.voiceStyle = voiceId
+      c.voice_provider = lockedAudioProvider.value || ''
+      c.voiceProvider = lockedAudioProvider.value || ''
+      c.voice_sample_url = ''
+      c.voiceSampleUrl = ''
+    }
+  } catch (e) {
+    toast.error(e.message || '音色保存失败')
   }
 }
 function getVoiceProfile(voiceId) {
@@ -2978,15 +2991,19 @@ function batchCharImages() {
   const ids = visualChars.value.filter(c => !(c.image_url || c.imageUrl)).map(c => c.id)
   if (!ids.length) { toast.info('所有角色图片已生成'); return }
   pendingCharImageIds.value = [...new Set([...pendingCharImageIds.value, ...ids])]
+  toast.success(`角色图片批量生成中 (0/${ids.length})`)
   characterAPI.batchImages(ids, epId.value).then(async () => {
-    toast.success('角色图片批量生成中')
     await refresh()
-    watchAsyncResult(() => ids.every(id => {
-      const char = chars.value.find(c => c.id === id)
-      const done = !!(char?.image_url || char?.imageUrl)
-      if (done) pendingCharImageIds.value = pendingCharImageIds.value.filter(item => item !== id)
-      return done
-    }), 36)
+    watchAsyncResult(() => {
+      let doneCount = 0
+      for (const id of ids) {
+        const char = chars.value.find(c => c.id === id)
+        if (char?.image_url || char?.imageUrl) { doneCount++; pendingCharImageIds.value = pendingCharImageIds.value.filter(item => item !== id) }
+      }
+      if (doneCount > 0 && doneCount < ids.length) toast.success(`角色图片 ${doneCount}/${ids.length} 已完成`, { id: 'batch-char' })
+      if (doneCount === ids.length) { toast.success(`角色图片全部完成 (${ids.length}张)`, { id: 'batch-char' }); return true }
+      return false
+    }, 36)
   }).catch(e => {
     pendingCharImageIds.value = pendingCharImageIds.value.filter(item => !ids.includes(item))
     toast.error(e.message)
@@ -3013,13 +3030,17 @@ function batchSceneImages() {
   const ids = scenes.value.filter(s => !(s.image_url || s.imageUrl)).map(s => s.id)
   if (!ids.length) { toast.info('所有场景图片已生成'); return }
   pendingSceneImageIds.value = [...new Set([...pendingSceneImageIds.value, ...ids])]
-  ids.forEach(id => { sceneAPI.generateImage(id, epId.value).then(() => refresh()).catch(e => toast.error(e.message)) })
-  toast.success('场景图片批量生成中')
-  watchAsyncResult(() => ids.every(id => {
-    const scene = scenes.value.find(s => s.id === id)
-    const done = !!(scene?.image_url || scene?.imageUrl)
-    if (done) pendingSceneImageIds.value = pendingSceneImageIds.value.filter(item => item !== id)
-    return done
+  toast.success(`场景图片批量生成中 (0/${ids.length})`)
+  ids.forEach(id => { sceneAPI.generateImage(id, epId.value).then(() => refresh()).catch(e => toast.error(`场景 ${id} 失败: ${e.message}`)) })
+  watchAsyncResult(() => {
+    let doneCount = 0
+    for (const id of ids) {
+      const scene = scenes.value.find(s => s.id === id)
+      if (scene?.image_url || scene?.imageUrl) { doneCount++; pendingSceneImageIds.value = pendingSceneImageIds.value.filter(item => item !== id) }
+    }
+    if (doneCount > 0 && doneCount < ids.length) toast.success(`场景图片 ${doneCount}/${ids.length} 已完成`, { id: 'batch-scene' })
+    if (doneCount === ids.length) { toast.success(`场景图片全部完成 (${ids.length}张)`, { id: 'batch-scene' }); return true }
+    return false
   }), 36)
 }
 
@@ -3320,15 +3341,24 @@ async function batchCompose() {
   toast.success('批量合成已开始')
   pollComposeStatus()
 }
+const merging = ref(false)
 async function doMerge() {
-  await mergeAPI.merge(epId.value); toast.success('拼接中...')
-  const poll = setInterval(async () => {
-    try { mergeData.value = await mergeAPI.status(epId.value) } catch {}
-    if (mergeData.value?.status === 'completed' || mergeData.value?.status === 'failed') {
-      clearInterval(poll)
-      mergeData.value.status === 'completed' ? toast.success('拼接完成') : toast.error('拼接失败')
-    }
-  }, 3000)
+  if (merging.value) return
+  merging.value = true
+  try {
+    await mergeAPI.merge(epId.value); toast.success('拼接中...')
+    const poll = setInterval(async () => {
+      try { mergeData.value = await mergeAPI.status(epId.value) } catch {}
+      if (mergeData.value?.status === 'completed' || mergeData.value?.status === 'failed') {
+        clearInterval(poll)
+        merging.value = false
+        mergeData.value.status === 'completed' ? toast.success('拼接完成') : toast.error(`拼接失败: ${mergeData.value.error_msg || ''}`)
+      }
+    }, 3000)
+  } catch (e) {
+    merging.value = false
+    toast.error(e.message || '拼接请求失败')
+  }
 }
 
 async function pollComposeStatus() {
@@ -4236,6 +4266,11 @@ onMounted(() => { refresh(); loadConfigs(); loadVoices() })
 .dot.pending {
   background: var(--accent-dark);
   box-shadow: 0 0 0 3px rgba(76, 125, 255, 0.14);
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
 }
 
 /* Prod grid */

@@ -994,16 +994,7 @@
               <span class="tag mono">{{ shotImgCount }}/{{ sbs.length }} 已有帧图</span>
               <span class="tag">{{ lockedImageConfigLabel }}</span>
               <span class="dim" style="font-size:11px">首帧必需，尾帧可选（手动点击生成）</span>
-              <div class="ml-auto flex gap-1">
-                <button v-if="gridImagePath" class="btn btn-sm" @click="reopenGridPreview">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                  查看当前宫格图
-                </button>
-                <button class="btn btn-primary btn-sm" @click="openGridTool">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                  宫格图工具
-                </button>
-              </div>
+              <!-- 宫格图工具入口已隐藏，代码保留 -->
             </div>
 
             <div v-if="gridHistory.length" class="grid-history-panel">

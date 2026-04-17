@@ -972,7 +972,14 @@
                       <span class="frame-num">#{{ String(sb.storyboard_number || sb.storyboardNumber || i + 1).padStart(2, '0') }}</span>
                       <span class="frame-badge">{{ getDialogueSpeaker(sb) }}</span>
                     </div>
-                    <div class="dub-desc">{{ getDialogueText(sb) || '未填写文本' }}</div>
+                    <textarea
+                      :value="sb.dialogue || ''"
+                      class="textarea"
+                      rows="2"
+                      style="font-size:13px;margin-top:4px"
+                      placeholder="输入对白内容，如：角色名：台词内容"
+                      @blur="updateDialogue(sb, $event.target.value)"
+                    />
                     </div>
                     <span class="tag" :class="hasTTS(sb) ? 'tag-success' : ''">{{ hasTTS(sb) ? '已生成' : '待生成' }}</span>
                   </div>
@@ -3075,6 +3082,25 @@ function getDialogueSpeaker(sb) {
   const speaker = getDialogueSpeakerRaw(sb)
   if (!speaker) return '旁白'
   return speaker
+}
+async function updateDialogue(sb, value) {
+  const next = (value ?? '').trim()
+  const old = (sb.dialogue || '').trim()
+  if (next === old) return
+  try {
+    await storyboardAPI.update(sb.id, { dialogue: next })
+    sb.dialogue = next
+    // 对白改了，旧配音作废
+    if (sb.tts_audio_url || sb.ttsAudioUrl) {
+      sb.tts_audio_url = null
+      sb.ttsAudioUrl = null
+      toast.success('对白已保存，配音已清除，请重新生成')
+    } else {
+      toast.success('对白已保存')
+    }
+  } catch (e) {
+    toast.error(e.message || '保存失败')
+  }
 }
 async function genShotTTS(sb) {
   try {

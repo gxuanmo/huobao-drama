@@ -3183,33 +3183,48 @@ function getShotReferenceImages(sb) {
 }
 
 function buildShotImagePrompt(sb, frameType) {
-  const title = sb.title || ''
-  const description = sb.image_prompt || sb.imagePrompt || sb.description || ''
-  const shotType = sb.shot_type || sb.shotType || ''
-  const angle = sb.angle || ''
-  const movement = sb.movement || ''
-  const location = sb.location || getSceneName(sb)
-  const time = sb.time || ''
-  const charactersText = getStoryboardCharacterNames(sb).join('、')
-  const action = sb.action || ''
-  const atmosphere = sb.atmosphere || ''
-  const frameHint = frameType === 'first_frame'
-    ? '生成这个镜头的起始关键帧，突出建立关系和动作开始瞬间'
-    : '生成这个镜头的结束关键帧，突出动作结束、情绪落点或结果状态'
+  // 优先用 AI 生成的英文 image_prompt（storyboard_breaker 写的）
+  const aiPrompt = (sb.image_prompt || sb.imagePrompt || '').trim()
 
+  // 参考图映射标注
+  const refLabels = []
+  const sceneId = sb?.scene_id || sb?.sceneId
+  const scene = scenes.value.find(item => item.id === sceneId)
+  let imgIdx = 1
+  if (scene?.image_url || scene?.imageUrl) refLabels.push(`Image ${imgIdx++} = ${scene.location || 'scene'} background`)
+  for (const charId of getStoryboardCharacterIds(sb)) {
+    const char = chars.value.find(item => item.id === charId)
+    if (char?.image_url || char?.imageUrl) refLabels.push(`Image ${imgIdx++} = ${char.name} character reference`)
+  }
+  for (const propId of getStoryboardPropIds(sb)) {
+    const prop = props.value.find(item => item.id === propId)
+    if (prop?.image_url || prop?.imageUrl) refLabels.push(`Image ${imgIdx++} = ${prop.name} prop reference`)
+  }
+
+  const frameHint = frameType === 'first_frame'
+    ? 'Generate the opening keyframe of this shot.'
+    : 'Generate the closing keyframe of this shot, showing the end state.'
+
+  if (aiPrompt) {
+    // AI prompt 存在，直接用 + 补参考图映射
+    const parts = [aiPrompt]
+    if (refLabels.length) parts.push('Reference images: ' + refLabels.join(', ') + '.')
+    parts.push(frameHint)
+    return parts.join('\n')
+  }
+
+  // fallback：没有 image_prompt 时用 description 拼接
+  const desc = sb.description || sb.title || ''
+  const shotType = sb.shot_type || sb.shotType || ''
+  const atmosphere = sb.atmosphere || ''
   return [
-    title ? `镜头标题：${title}` : '',
-    description ? `画面描述：${description}` : '',
-    shotType ? `景别：${shotType}` : '',
-    angle ? `机位：${angle}` : '',
-    movement ? `运镜：${movement}` : '',
-    charactersText ? `角色：${charactersText}` : '',
-    location ? `地点：${location}` : '',
-    time ? `时间：${time}` : '',
-    action ? `动作：${action}` : '',
-    atmosphere ? `氛围：${atmosphere}` : '',
+    desc,
+    shotType ? `${shotType} shot` : '',
+    atmosphere,
+    refLabels.length ? 'Reference: ' + refLabels.join(', ') : '',
+    'cinematic lighting, 4k high quality, no text, no watermark',
     frameHint,
-  ].filter(Boolean).join('；')
+  ].filter(Boolean).join(', ')
 }
 
 async function genShotFrame(sb, frameType) {

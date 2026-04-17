@@ -972,17 +972,17 @@
                       <span class="frame-num">#{{ String(sb.storyboard_number || sb.storyboardNumber || i + 1).padStart(2, '0') }}</span>
                       <span class="frame-badge">{{ getDialogueSpeaker(sb) }}</span>
                     </div>
-                    <textarea
-                      :value="sb.dialogue || ''"
-                      class="textarea"
-                      rows="2"
-                      style="font-size:13px;margin-top:4px"
-                      placeholder="输入对白内容，如：角色名：台词内容"
-                      @blur="updateDialogue(sb, $event.target.value)"
-                    />
                     </div>
                     <span class="tag" :class="hasTTS(sb) ? 'tag-success' : ''">{{ hasTTS(sb) ? '已生成' : '待生成' }}</span>
                   </div>
+                  <textarea
+                    :value="sb.dialogue || ''"
+                    class="textarea mono"
+                    style="font-size:13px;line-height:1.6;width:100%;resize:vertical;min-height:48px"
+                    rows="3"
+                    placeholder="角色名：（情绪）台词内容"
+                    @blur="updateDialogue(sb, $event.target.value)"
+                  />
                 <div class="dub-meta">
                   <span class="dim">{{ sb.shot_type || sb.shotType || '未设景别' }}</span>
                   <span class="dim">{{ sb.duration || 10 }}s</span>

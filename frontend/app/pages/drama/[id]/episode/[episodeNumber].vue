@@ -3041,7 +3041,7 @@ function batchSceneImages() {
     if (doneCount > 0 && doneCount < ids.length) toast.success(`场景图片 ${doneCount}/${ids.length} 已完成`, { id: 'batch-scene' })
     if (doneCount === ids.length) { toast.success(`场景图片全部完成 (${ids.length}张)`, { id: 'batch-scene' }); return true }
     return false
-  }), 36)
+  }, 36)
 }
 
 const IGNORE_TTS_SPEAKERS = /^(环境音|环境声|音效|效果音|sfx|sound ?effect|bgm|背景音|背景音乐|ambient)$/i

@@ -30,13 +30,14 @@ const projectRoot = path.resolve(__dirname, '../..')
 
 const app = new Hono()
 
-// Middleware
+// Middleware: errorHandler 必须在最外层 — 这样如果 logger/路由内部抛出，
+// 都能被它捕获并返回 JSON 错误响应。Hono 中间件按注册顺序入栈、逆序回栈。
+app.use('*', errorHandler)
 app.use('*', cors({
   origin: ['http://localhost:3013', 'http://localhost:5679'],
   credentials: true,
 }))
 app.use('*', requestLogger)
-app.use('*', errorHandler)
 
 // Health check
 app.get('/api/v1/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))

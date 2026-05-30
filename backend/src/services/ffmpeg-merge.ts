@@ -68,6 +68,14 @@ export async function mergeEpisodeVideos(episodeId: number, dramaId: number): Pr
   return mergeId
 }
 
+/**
+ * 转义 ffmpeg concat demuxer 的 file 行：把单引号关掉再连上转义的 \'，防止
+ * 路径里带 `'` 直接破坏列表文法（例如用户名 O'Brien 的目录）。
+ */
+function escapeConcatPath(p: string): string {
+  return p.replace(/\\/g, '/').replace(/'/g, "'\\''")
+}
+
 async function doMerge(mergeId: number, episodeId: number, videos: string[]) {
   // 生成 concat 列表文件
   const listDir = path.join(STORAGE_ROOT, 'temp')
@@ -75,7 +83,7 @@ async function doMerge(mergeId: number, episodeId: number, videos: string[]) {
   const listPath = path.join(listDir, `${uuid()}.txt`)
 
   const listContent = videos
-    .map(v => `file '${toAbsPath(v)}'`)
+    .map(v => `file '${escapeConcatPath(toAbsPath(v))}'`)
     .join('\n')
   fs.writeFileSync(listPath, listContent, 'utf-8')
 
@@ -85,28 +93,34 @@ async function doMerge(mergeId: number, episodeId: number, videos: string[]) {
   const outputFilename = `${uuid()}.mp4`
   const outputPath = path.join(outputDir, outputFilename)
 
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg()
-      .input(listPath)
-      .inputOptions(['-f', 'concat', '-safe', '0'])
-      .outputOptions([
-        '-fflags', '+genpts',
-        '-c:v', 'libx264',
-        '-preset', 'medium',
-        '-crf', '23',
-        '-c:a', 'aac',
-        '-ar', '48000',
-        '-b:a', '192k',
-        '-movflags', '+faststart',
-      ])
-      .output(outputPath)
-      .on('end', () => resolve())
-      .on('error', (err) => reject(err))
-      .run()
-  })
-
-  // 清理临时文件
-  fs.unlinkSync(listPath)
+  try {
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg()
+        .input(listPath)
+        .inputOptions(['-f', 'concat', '-safe', '0'])
+        .outputOptions([
+          '-fflags', '+genpts',
+          '-c:v', 'libx264',
+          '-preset', 'medium',
+          '-crf', '23',
+          '-c:a', 'aac',
+          '-ar', '48000',
+          '-b:a', '192k',
+          '-movflags', '+faststart',
+        ])
+        .output(outputPath)
+        .on('end', () => resolve())
+        .on('error', (err) => reject(err))
+        .run()
+    })
+  } catch (err) {
+    // 失败时清理半成品输出，避免误以为是有效合并文件
+    fs.promises.unlink(outputPath).catch(() => {})
+    throw err
+  } finally {
+    // 无论成败都清理临时 list
+    fs.promises.unlink(listPath).catch(() => {})
+  }
 
   // 获取时长
   const duration = await getVideoDuration(outputPath)

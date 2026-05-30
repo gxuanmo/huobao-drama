@@ -1,0 +1,111 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - text: 返回项目
+        - generic [ref=e10]:
+          - heading "多子多福" [level=1] [ref=e11]
+          - generic [ref=e12]: 第 1 集
+          - generic [ref=e13]:
+            - generic [ref=e14]: 原始内容
+            - generic [ref=e15]: 2/11
+            - generic [ref=e16]: 0 角色 · 0 镜头
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - text: 刷新
+        - button "开始制作" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - text: 开始制作
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: 剧本
+            - button "原始内容" [ref=e32] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: 原始内容
+            - button "AI 改写" [ref=e38] [cursor=pointer]:
+              - img [ref=e40]
+              - generic [ref=e43]: AI 改写
+            - button "提取" [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - generic [ref=e52]: 提取
+            - button "音色" [ref=e53] [cursor=pointer]:
+              - img [ref=e55]
+              - generic [ref=e60]: 音色
+            - button "分镜" [ref=e61] [cursor=pointer]:
+              - img [ref=e63]
+              - generic [ref=e69]: 分镜
+          - generic [ref=e70]:
+            - generic [ref=e71]: 制作
+            - button "角色形象" [ref=e72] [cursor=pointer]:
+              - img [ref=e74]
+              - generic [ref=e77]: 角色形象
+            - button "场景图片" [ref=e78] [cursor=pointer]:
+              - img [ref=e80]
+              - generic [ref=e84]: 场景图片
+            - button "配音生成" [ref=e85] [cursor=pointer]:
+              - img [ref=e87]
+              - generic [ref=e92]: 配音生成
+            - button "镜头图片" [ref=e93] [cursor=pointer]:
+              - img [ref=e95]
+              - generic [ref=e100]: 镜头图片
+            - button "视频生成" [ref=e101] [cursor=pointer]:
+              - img [ref=e103]
+              - generic [ref=e107]: 视频生成
+            - button "视频合成" [ref=e108] [cursor=pointer]:
+              - img [ref=e110]
+              - generic [ref=e115]: 视频合成
+          - generic [ref=e116]:
+            - generic [ref=e117]: 导出
+            - button "拼接导出" [ref=e118] [cursor=pointer]:
+              - img [ref=e120]
+              - generic [ref=e124]: 拼接导出
+        - generic [ref=e125]:
+          - generic [ref=e127]:
+            - generic [ref=e128]: 制作进度
+            - generic [ref=e129]: 2/11
+          - generic [ref=e132]:
+            - button "原始内容" [ref=e133] [cursor=pointer]
+            - button "AI 改写" [ref=e134] [cursor=pointer]
+            - button "提取" [ref=e135] [cursor=pointer]
+            - button "音色" [ref=e136] [cursor=pointer]
+            - button "分镜" [ref=e137] [cursor=pointer]
+          - button "刷新数据" [ref=e138] [cursor=pointer]:
+            - img [ref=e139]
+            - text: 刷新数据
+      - main [ref=e143]:
+        - generic [ref=e144]:
+          - button "原始内容" [ref=e145] [cursor=pointer]:
+            - generic [ref=e146]: 原始内容
+          - button "AI 改写" [ref=e148] [cursor=pointer]:
+            - generic [ref=e149]: AI 改写
+        - generic [ref=e152]:
+          - generic [ref=e153]:
+            - generic [ref=e155]:
+              - generic [ref=e156]: "01"
+              - generic [ref=e157]: 原始内容
+            - generic [ref=e158]:
+              - generic [ref=e159]: 2017 字
+              - button "保存" [ref=e160] [cursor=pointer]:
+                - img [ref=e161]
+                - text: 保存
+          - textbox "粘贴小说原文、故事大纲或分镜描述..." [ref=e165]: 《多子多福，我的实力是族人总和》 时长：每集2min 集数：80集 人物小传： 男主：刘玄 (男，20岁)，蓝星大学生穿越到修仙世界，扮猪吃虎，深情（对每个老婆都深情），软饭硬吃，极速飞升。表面上是贪图美色的废柴，实际上心思缜密，拥有现代人的思维，极其护短。前期穿着朴素甚至寒酸，后期锦衣玉带，气质越发尊贵。多子多福系统（生娃=升级，老婆=资源）。 女主1：林雪儿 (女，18岁)，糟糠之妻，白月光，纯欲萝莉。落魄修仙家族旁支，武道修士（没有灵根），外门巡逻队小队长。单纯善良，一心一意对刘玄好，有点小傲娇，容易害羞。主角的第一个女人，新手礼包触发者，不仅养主角，还保护主角。 女主2：颜清瑶 (女，18岁)，高冷校花，曾经的暗恋对象，刘玄春梦的对象。天赋卓绝的内门弟子，筑基老祖记名弟子，本高不可攀的存在。清冷孤傲，初期对刘玄的堕落感到失望，后期被刘玄的实力震惊，产生微妙的情愫和后悔。 女主3：林安琪 (女，22岁)，御姐富婆，妩媚动人，生意搭档。符篆殿殿主之女，红松城符篆店老板娘。精明能干，风情万种，眼光极高，最后被主角的才华（和能力）征服。 女主4：常丹（女，20岁），永宁道院老乡，八品灵根，考核失败，渴望修仙 。功利心强 ，愿意成为刘玄道侣换取灵石和修炼机会。 【后面还有不少女生】 反派：张也 (男，22岁)，反派工具人，脸被打肿。外门天才，颜清瑶的追求者。嚣张跋扈，看不起刘玄，每次装B都会被刘玄狠狠打脸。 林天岳 (男，50岁)，护短岳父，金大腿。外门符篆殿殿主，林家高层。看中刘玄的潜力，主动送资源、送女儿。 故事梗概： 穿越到修仙世界的废柴大学生刘玄，在红松宗入门考核中，因在幻境中“调戏”女神颜清瑶而被当众羞辱，判定为“色欲熏心”，被发配到专门收容废物的“双修殿”。 众人嘲笑他只能靠出卖色相或吃软饭苟活，刘玄却觉醒了“多子多福系统”。只要娶妻生子，就能获得顶级功法、修为暴涨、啥啥都会！ 于是，刘玄走上了一条与众不同的修仙路： 别人闭关苦修，他在纳妾； 别人因为一颗丹药打生打死，他生孩子系统直接送一堆； 当昔日嘲笑他的天才还在为筑基发愁时，刘玄已经带着他的庞大家族，在这个混乱的修仙界建立起不朽的家族，成为了人人敬仰的“刘老祖”。 核心冲突： 穿越到修仙界的刘玄，资质平庸，却激活了“多子多福系统”。系统奖励与子嗣挂钩，且子嗣的实力能直接叠加到他身上。为了生存和变强，刘玄必须走上一条与主流修仙界格格不入的“生娃修仙”之路。 第1集 1-1 日 内 红松宗考核幻境内 人物：刘玄、颜清瑶 ▲五米宽的雕花古床上，轻纱摇曳，烛台的灯光十分暧昧，一片旖旎的感觉。刘玄猛地睁眼，胸口贴着一具娇躯。 ▲他低头，只见身着淡绿薄纱裙的颜清瑶蜷缩在怀，领口微敞，露出纤细雪白的脖颈，长发散乱。 刘玄（瞪大眼睛，喉结滚动，OS）：卧槽？哪儿来的古装美女？我宿舍呢？ ▲他下意识抬手，指尖划过少女光滑的肩头，薄纱滑落少许，露出肩头细腻的肌肤，触感温热丝滑，毫无虚幻感。 刘玄（OS）：（回忆）昨晚熬夜看修仙小说，趴着睡着了……这是清醒梦？（惊喜）也太真实了！触感、香气都这么真，不体验下血亏！ ▲颜清瑶睫毛轻抬，眼神含水，声音软糯 颜清瑶：玄哥哥，别停呀…… ▲她抬手勾住刘玄的手腕，指尖带着微凉，身体微微贴近，薄纱下的曲线隐约可见。 ▲刘玄抬手抚摸少女脸颊，颜清瑶脸颊更红，脸贴在他胸前，刘玄更喜，急切道。 刘玄：靠！管他是不是梦！先验验货，反正不亏！ ▲刘玄一个翻身上去，少女露的更多了，刘玄正要更进一步…… 1-2 日 内 红松宗考核大殿 人物：刘玄、李华、颜清瑶、众学子 ▲一声震耳欲聋的大钟炸响，刘玄的画面整个变的黑白起来，然后瞬间破碎。 ▲刘玄猛地睁开眼，一脸茫然。 ▲镜头快速环视：刘玄站在一座白玉高台上，台下是古风大殿和黑压压的人群，所有人都盯着他，表情各异。 ▲快速闪过：先是一名弟子指着刘玄夸张的笑，然后两个女弟子掩嘴窃笑，表情鄙夷，接着画面给到真实的颜清瑶。 ▲颜清瑶脸色通红，紧咬下唇，眼中满是羞愤，盯着刘玄。 颜清瑶：无……无耻之徒！ 李华（怒喝）：刘玄，永宁农户出身，九品灵根，道院成绩优秀，心性下下等，考核不通过！ ▲刘玄瞪大眼睛，融合记忆。 刘玄：这不是做梦，我穿越到玄幻世界了？还成了个九品灵根的废物？ ▲刘玄愣在原地，周围人群的嘲讽还在继续。 人群甲：九品灵根也就罢了，心性还这么差，真是垃圾！ 人群乙：居然敢觊觎颜清瑶，怕不是想女人想疯了！ ▲刘玄攥紧拳头，满脸绝望。 系统音：叮！检测到宿主灵魂稳定，多子多福系统绑定成功！ 系统音：多子多福系统：1、宿主孕育子嗣就能获得系统随礼；2、所有子女的实力全部叠加到宿主身上。 ▲刘玄盯着系统面板，瞳孔地震，拳头也攥紧了，随即狂喜，之前的沮丧一扫而空。 刘玄（ OS）：考核失败算个屁！老子只要娶妻生子就能变强！这……才是我的仙路啊！ ▲他无视周围的嘲讽，眼神发亮，嘴角上扬。 镜头定格：刘玄直视系统面板，嘴角上扬（有种废柴崛起的感觉），背景是学子们错愕的表情，系统功能字幕加粗闪现
+        - generic [ref=e166]:
+          - button "上一步" [disabled] [ref=e167]:
+            - img [ref=e168]
+            - text: 上一步
+          - generic [ref=e170]:
+            - button "原始内容" [ref=e171] [cursor=pointer]
+            - button "AI 改写" [ref=e172] [cursor=pointer]
+            - button "提取" [ref=e173] [cursor=pointer]
+            - button "音色" [ref=e174] [cursor=pointer]
+            - button "分镜" [ref=e175] [cursor=pointer]
+          - button "AI 改写" [ref=e176] [cursor=pointer]:
+            - text: AI 改写
+            - img [ref=e177]
+  - region "Notifications alt+T":
+    - list

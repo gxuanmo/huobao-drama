@@ -43,3 +43,7 @@ temp/
 .superpowers/
 /CLAUDE.md
 /AGENTS.md
+
+# Claude Code checkup
+.claude/checkup-state.json
+.claude/checkup-reports/

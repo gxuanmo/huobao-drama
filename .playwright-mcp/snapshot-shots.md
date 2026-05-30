@@ -1,0 +1,91 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - text: 返回项目
+        - generic [ref=e10]:
+          - heading "多子多福" [level=1] [ref=e11]
+          - generic [ref=e12]: 第 1 集
+          - generic [ref=e13]:
+            - generic [ref=e14]: 镜头图片
+            - generic [ref=e15]: 9/11
+            - generic [ref=e16]: 6 角色 · 11 镜头
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - text: 刷新
+        - button "查看成片" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - text: 查看成片
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: 剧本
+            - button "原始内容" [ref=e32] [cursor=pointer]
+            - button "AI 改写" [ref=e38] [cursor=pointer]
+            - button "提取" [ref=e44] [cursor=pointer]
+            - button "音色" [ref=e50] [cursor=pointer]
+            - button "分镜" [ref=e56] [cursor=pointer]
+          - generic [ref=e62]:
+            - generic [ref=e63]: 制作
+            - button "角色形象" [ref=e64] [cursor=pointer]
+            - button "场景图片" [ref=e70] [cursor=pointer]
+            - button "配音生成" [ref=e76] [cursor=pointer]
+            - button "镜头图片" [active] [ref=e82] [cursor=pointer]
+            - button "视频生成" [ref=e88] [cursor=pointer]
+            - button "视频合成" [ref=e94] [cursor=pointer]
+          - generic [ref=e100]:
+            - generic [ref=e101]: 导出
+            - button "拼接导出" [ref=e102] [cursor=pointer]
+        - generic [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: 制作进度
+            - generic [ref=e112]: 9/11
+          - generic [ref=e115]:
+            - button "角色形象" [ref=e618] [cursor=pointer]
+            - button "场景图片" [ref=e619] [cursor=pointer]
+            - button "配音生成" [ref=e620] [cursor=pointer]
+            - button "镜头图片" [ref=e621] [cursor=pointer]
+            - button "视频生成" [ref=e622] [cursor=pointer]
+            - button "视频合成" [ref=e623] [cursor=pointer]
+          - button "刷新数据" [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+            - text: 刷新数据
+      - main [ref=e126]:
+        - generic [ref=e127]:
+          - button "分镜拆解" [ref=e624] [cursor=pointer]:
+            - generic [ref=e625]: 分镜拆解
+          - button "配音生成" [ref=e627] [cursor=pointer]:
+            - generic [ref=e628]: 配音生成
+          - button "镜头图片" [ref=e630] [cursor=pointer]:
+            - generic [ref=e631]: 镜头图片
+          - button "视频生成" [ref=e633] [cursor=pointer]:
+            - generic [ref=e634]: 视频生成
+          - button "视频合成" [ref=e636] [cursor=pointer]:
+            - generic [ref=e637]: 视频合成
+        - generic [ref=e639]:
+          - generic [ref=e640]:
+            - generic [ref=e642]
+            - generic [ref=e647]
+          - generic [ref=e682]:
+            - generic [ref=e683]
+            - generic [ref=e696]
+        - generic [ref=e417]:
+          - button "配音生成" [ref=e961] [cursor=pointer]:
+            - img [ref=e962]
+            - text: 配音生成
+          - generic [ref=e421]:
+            - button "角色形象" [ref=e964] [cursor=pointer]
+            - button "场景图片" [ref=e965] [cursor=pointer]
+            - button "配音生成" [ref=e966] [cursor=pointer]
+            - button "镜头图片" [ref=e967] [cursor=pointer]
+            - button "视频生成" [ref=e968] [cursor=pointer]
+            - button "视频合成" [ref=e969] [cursor=pointer]
+          - button "视频生成" [ref=e970] [cursor=pointer]:
+            - text: 视频生成
+            - img [ref=e971]
+  - region "Notifications alt+T":
+    - list

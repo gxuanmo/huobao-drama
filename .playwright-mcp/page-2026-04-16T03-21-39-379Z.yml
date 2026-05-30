@@ -1,0 +1,345 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - text: 返回项目
+        - generic [ref=e10]:
+          - heading "多子多福" [level=1] [ref=e11]
+          - generic [ref=e12]: 第 1 集
+          - generic [ref=e13]:
+            - generic [ref=e14]: 镜头图片
+            - generic [ref=e15]: 9/11
+            - generic [ref=e16]: 6 角色 · 11 镜头
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - text: 刷新
+        - button "查看成片" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - text: 查看成片
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: 剧本
+            - button "原始内容" [ref=e32] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: 原始内容
+            - button "AI 改写" [ref=e38] [cursor=pointer]:
+              - img [ref=e40]
+              - generic [ref=e43]: AI 改写
+            - button "提取" [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - generic [ref=e49]: 提取
+            - button "音色" [ref=e50] [cursor=pointer]:
+              - img [ref=e52]
+              - generic [ref=e55]: 音色
+            - button "分镜" [ref=e56] [cursor=pointer]:
+              - img [ref=e58]
+              - generic [ref=e61]: 分镜
+          - generic [ref=e62]:
+            - generic [ref=e63]: 制作
+            - button "角色形象" [ref=e64] [cursor=pointer]:
+              - img [ref=e66]
+              - generic [ref=e69]: 角色形象
+            - button "场景图片" [ref=e70] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e75]: 场景图片
+            - button "配音生成" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e81]: 配音生成
+            - button "镜头图片" [active] [ref=e82] [cursor=pointer]:
+              - img [ref=e84]
+              - generic [ref=e87]: 镜头图片
+            - button "视频生成" [ref=e88] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e93]: 视频生成
+            - button "视频合成" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: 视频合成
+          - generic [ref=e100]:
+            - generic [ref=e101]: 导出
+            - button "拼接导出" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e107]: 拼接导出
+        - generic [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: 制作进度
+            - generic [ref=e112]: 9/11
+          - generic [ref=e115]:
+            - button "角色形象" [ref=e618] [cursor=pointer]
+            - button "场景图片" [ref=e619] [cursor=pointer]
+            - button "配音生成" [ref=e620] [cursor=pointer]
+            - button "镜头图片" [ref=e621] [cursor=pointer]
+            - button "视频生成" [ref=e622] [cursor=pointer]
+            - button "视频合成" [ref=e623] [cursor=pointer]
+          - button "刷新数据" [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+            - text: 刷新数据
+      - main [ref=e126]:
+        - generic [ref=e127]:
+          - button "分镜拆解" [ref=e624] [cursor=pointer]:
+            - generic [ref=e625]: 分镜拆解
+          - button "配音生成" [ref=e627] [cursor=pointer]:
+            - generic [ref=e628]: 配音生成
+          - button "镜头图片" [ref=e630] [cursor=pointer]:
+            - generic [ref=e631]: 镜头图片
+          - button "视频生成" [ref=e633] [cursor=pointer]:
+            - generic [ref=e634]: 视频生成
+          - button "视频合成" [ref=e636] [cursor=pointer]:
+            - generic [ref=e637]: 视频合成
+        - generic [ref=e639]:
+          - generic [ref=e640]:
+            - generic [ref=e642]:
+              - img [ref=e643]
+              - generic [ref=e646]: 制作工作台
+            - generic [ref=e647]:
+              - button "角色形象 6/6" [ref=e648] [cursor=pointer]:
+                - img [ref=e649]
+                - text: 角色形象
+                - generic [ref=e654]: 6/6
+              - button "场景图片 2/2" [ref=e655] [cursor=pointer]:
+                - img [ref=e656]
+                - text: 场景图片
+                - generic [ref=e659]: 2/2
+              - button "配音生成" [ref=e660] [cursor=pointer]:
+                - img [ref=e661]
+                - text: 配音生成
+              - button "镜头图片 11/11" [ref=e665] [cursor=pointer]:
+                - img [ref=e666]
+                - text: 镜头图片
+                - generic [ref=e670]: 11/11
+              - button "视频生成 11/11" [ref=e671] [cursor=pointer]:
+                - img [ref=e672]
+                - text: 视频生成
+                - generic [ref=e675]: 11/11
+              - button "视频合成 11/11" [ref=e676] [cursor=pointer]:
+                - img [ref=e677]
+                - text: 视频合成
+                - generic [ref=e681]: 11/11
+          - generic [ref=e682]:
+            - generic [ref=e683]:
+              - generic [ref=e684]: 11 个镜头
+              - generic [ref=e685]: 11/11 已有帧图
+              - generic [ref=e686]: 默认配置
+              - generic [ref=e687]: 首帧必需，尾帧可选（手动点击生成）
+              - button "宫格图工具" [ref=e689] [cursor=pointer]:
+                - img [ref=e690]
+                - text: 宫格图工具
+            - generic [ref=e696]:
+              - generic [ref=e697] [cursor=pointer]:
+                - generic [ref=e698]:
+                  - generic [ref=e699]:
+                    - generic [ref=e700]: "#01"
+                    - generic [ref=e701]: 特写
+                    - button "编辑分镜 prompt" [ref=e702]:
+                      - img [ref=e703]
+                  - generic [ref=e705]: 刘玄在幻境古床上惊醒，发现怀中躺着古装美女颜清瑶，内心震惊又窃喜，以为是清醒梦。
+                  - generic [ref=e706]:
+                    - generic [ref=e708]: 首帧
+                    - generic [ref=e711]: 尾帧
+                - generic [ref=e712]:
+                  - generic [ref=e713]:
+                    - img [ref=e715]
+                    - generic [ref=e716]: 首帧
+                  - generic [ref=e717]:
+                    - img [ref=e719]
+                    - generic [ref=e720]: 尾帧
+              - generic [ref=e721] [cursor=pointer]:
+                - generic [ref=e722]:
+                  - generic [ref=e723]:
+                    - generic [ref=e724]: "#02"
+                    - generic [ref=e725]: 近景
+                    - button "编辑分镜 prompt" [ref=e726]:
+                      - img [ref=e727]
+                  - generic [ref=e729]: 刘玄试探性地触摸颜清瑶的肩头，薄纱滑落，触感真实让他更加确信这是'美梦'。
+                  - generic [ref=e730]:
+                    - generic [ref=e732]: 首帧
+                    - generic [ref=e735]: 尾帧
+                - generic [ref=e736]:
+                  - generic [ref=e737]:
+                    - img [ref=e739]
+                    - generic [ref=e740]: 首帧
+                  - generic [ref=e741]:
+                    - img [ref=e743]
+                    - generic [ref=e744]: 尾帧
+              - generic [ref=e745] [cursor=pointer]:
+                - generic [ref=e746]:
+                  - generic [ref=e747]:
+                    - generic [ref=e748]: "#03"
+                    - generic [ref=e749]: 近景
+                    - button "编辑分镜 prompt" [ref=e750]:
+                      - img [ref=e751]
+                  - generic [ref=e753]: 颜清瑶醒来，娇羞地回应刘玄，主动贴近，两人氛围更加暧昧。
+                  - generic [ref=e754]:
+                    - generic [ref=e756]: 首帧
+                    - generic [ref=e759]: 尾帧
+                - generic [ref=e760]:
+                  - generic [ref=e761]:
+                    - img [ref=e763]
+                    - generic [ref=e764]: 首帧
+                  - generic [ref=e765]:
+                    - img [ref=e767]
+                    - generic [ref=e768]: 尾帧
+              - generic [ref=e769] [cursor=pointer]:
+                - generic [ref=e770]:
+                  - generic [ref=e771]:
+                    - generic [ref=e772]: "#04"
+                    - generic [ref=e773]: 中景
+                    - button "编辑分镜 prompt" [ref=e774]:
+                      - img [ref=e775]
+                  - generic [ref=e777]: 刘玄急切地翻身压上颜清瑶，旖旎氛围达到顶点，正要更进一步时即将被打破。
+                  - generic [ref=e778]:
+                    - generic [ref=e780]: 首帧
+                    - generic [ref=e783]: 尾帧
+                - generic [ref=e784]:
+                  - generic [ref=e785]:
+                    - img [ref=e787]
+                    - generic [ref=e788]: 首帧
+                  - generic [ref=e789]:
+                    - img [ref=e791]
+                    - generic [ref=e792]: 尾帧
+              - generic [ref=e793] [cursor=pointer]:
+                - generic [ref=e794]:
+                  - generic [ref=e795]:
+                    - generic [ref=e796]: "#05"
+                    - generic [ref=e797]: 全景
+                    - button "编辑分镜 prompt" [ref=e798]:
+                      - img [ref=e799]
+                  - generic [ref=e801]: 钟鸣炸响打破幻境，画面碎裂，刘玄从旖旎梦境猛然回到现实的考核大殿，站在白玉高台上茫然四顾。
+                  - generic [ref=e802]:
+                    - generic [ref=e804]: 首帧
+                    - generic [ref=e807]: 尾帧
+                - generic [ref=e808]:
+                  - generic [ref=e809]:
+                    - img [ref=e811]
+                    - generic [ref=e812]: 首帧
+                  - generic [ref=e813]:
+                    - img [ref=e815]
+                    - generic [ref=e816]: 尾帧
+              - generic [ref=e817] [cursor=pointer]:
+                - generic [ref=e818]:
+                  - generic [ref=e819]:
+                    - generic [ref=e820]: "#06"
+                    - generic [ref=e821]: 中景
+                    - button "编辑分镜 prompt" [ref=e822]:
+                      - img [ref=e823]
+                  - generic [ref=e825]: 台下弟子们嘲笑刘玄，颜清瑶羞愤交加地骂他无耻，人群甲嘲讽他灵根差心性更差。
+                  - generic [ref=e826]:
+                    - generic [ref=e828]: 首帧
+                    - generic [ref=e831]: 尾帧
+                - generic [ref=e832]:
+                  - generic [ref=e833]:
+                    - img [ref=e835]
+                    - generic [ref=e836]: 首帧
+                  - generic [ref=e837]:
+                    - img [ref=e839]
+                    - generic [ref=e840]: 尾帧
+              - generic [ref=e841] [cursor=pointer]:
+                - generic [ref=e842]:
+                  - generic [ref=e843]:
+                    - generic [ref=e844]: "#07"
+                    - generic [ref=e845]: 中景
+                    - button "编辑分镜 prompt" [ref=e846]:
+                      - img [ref=e847]
+                  - generic [ref=e849]: 考核官李华手持玉简，威严地宣布刘玄心性考核下下等，考核不通过。
+                  - generic [ref=e850]:
+                    - generic [ref=e852]: 首帧
+                    - generic [ref=e855]: 尾帧
+                - generic [ref=e856]:
+                  - generic [ref=e857]:
+                    - img [ref=e859]
+                    - generic [ref=e860]: 首帧
+                  - generic [ref=e861]:
+                    - img [ref=e863]
+                    - generic [ref=e864]: 尾帧
+              - generic [ref=e865] [cursor=pointer]:
+                - generic [ref=e866]:
+                  - generic [ref=e867]:
+                    - generic [ref=e868]: "#08"
+                    - generic [ref=e869]: 近景
+                    - button "编辑分镜 prompt" [ref=e870]:
+                      - img [ref=e871]
+                  - generic [ref=e873]: 大量穿越记忆涌入刘玄脑海，他痛苦抱头，同时人群乙继续嘲讽他觊觎颜师姐。
+                  - generic [ref=e874]:
+                    - generic [ref=e876]: 首帧
+                    - generic [ref=e879]: 尾帧
+                - generic [ref=e880]:
+                  - generic [ref=e881]:
+                    - img [ref=e883]
+                    - generic [ref=e884]: 首帧
+                  - generic [ref=e885]:
+                    - img [ref=e887]
+                    - generic [ref=e888]: 尾帧
+              - generic [ref=e889] [cursor=pointer]:
+                - generic [ref=e890]:
+                  - generic [ref=e891]:
+                    - generic [ref=e892]: "#09"
+                    - generic [ref=e893]: 特写
+                    - button "编辑分镜 prompt" [ref=e894]:
+                      - img [ref=e895]
+                  - generic [ref=e897]: 系统音在刘玄脑海中响起，淡蓝色系统面板在虚空中浮现，宣布多子多福系统绑定成功及规则。
+                  - generic [ref=e898]:
+                    - generic [ref=e900]: 首帧
+                    - generic [ref=e903]: 尾帧
+                - generic [ref=e904]:
+                  - generic [ref=e905]:
+                    - img [ref=e907]
+                    - generic [ref=e908]: 首帧
+                  - generic [ref=e909]:
+                    - img [ref=e911]
+                    - generic [ref=e912]: 尾帧
+              - generic [ref=e913] [cursor=pointer]:
+                - generic [ref=e914]:
+                  - generic [ref=e915]:
+                    - generic [ref=e916]: "#10"
+                    - generic [ref=e917]: 近景
+                    - button "编辑分镜 prompt" [ref=e918]:
+                      - img [ref=e919]
+                  - generic [ref=e921]: 刘玄理解系统规则后心态巨变，从绝望转为狂喜，意识到娶妻生子就能变强，找到了自己的仙路。
+                  - generic [ref=e922]:
+                    - generic [ref=e924]: 首帧
+                    - generic [ref=e927]: 尾帧
+                - generic [ref=e928]:
+                  - generic [ref=e929]:
+                    - img [ref=e931]
+                    - generic [ref=e932]: 首帧
+                  - generic [ref=e933]:
+                    - img [ref=e935]
+                    - generic [ref=e936]: 尾帧
+              - generic [ref=e937] [cursor=pointer]:
+                - generic [ref=e938]:
+                  - generic [ref=e939]:
+                    - generic [ref=e940]: "#11"
+                    - generic [ref=e941]: 中景
+                    - button "编辑分镜 prompt" [ref=e942]:
+                      - img [ref=e943]
+                  - generic [ref=e945]: 刘玄无视众人嘲笑，挺直脊背自信走下高台，学子们错愕的表情与他自信笑容形成鲜明对比。
+                  - generic [ref=e946]:
+                    - generic [ref=e948]: 首帧
+                    - generic [ref=e951]: 尾帧
+                - generic [ref=e952]:
+                  - generic [ref=e953]:
+                    - img [ref=e955]
+                    - generic [ref=e956]: 首帧
+                  - generic [ref=e957]:
+                    - img [ref=e959]
+                    - generic [ref=e960]: 尾帧
+        - generic [ref=e417]:
+          - button "配音生成" [ref=e961] [cursor=pointer]:
+            - img [ref=e962]
+            - text: 配音生成
+          - generic [ref=e421]:
+            - button "角色形象" [ref=e964] [cursor=pointer]
+            - button "场景图片" [ref=e965] [cursor=pointer]
+            - button "配音生成" [ref=e966] [cursor=pointer]
+            - button "镜头图片" [ref=e967] [cursor=pointer]
+            - button "视频生成" [ref=e968] [cursor=pointer]
+            - button "视频合成" [ref=e969] [cursor=pointer]
+          - button "视频生成" [ref=e970] [cursor=pointer]:
+            - text: 视频生成
+            - img [ref=e971]
+  - region "Notifications alt+T":
+    - list

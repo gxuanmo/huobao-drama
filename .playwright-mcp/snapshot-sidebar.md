@@ -1,0 +1,19 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]
+        - generic [ref=e10]
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]
+        - button "查看成片" [ref=e24] [cursor=pointer]
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]
+        - generic [ref=e108]
+      - main [ref=e126]:
+        - generic [ref=e127]
+        - generic [ref=e144]
+        - generic [ref=e417]
+  - region "Notifications alt+T":
+    - list

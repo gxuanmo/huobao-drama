@@ -33,6 +33,21 @@ export function getTextProviderBaseUrl(config: AIConfig) {
   return config.baseUrl
 }
 
+function parseModels(raw: string | null | undefined, configId: number): string[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.filter((x): x is string => typeof x === 'string')
+    if (typeof parsed === 'string' && parsed) return [parsed]
+    return []
+  } catch {
+    // 历史脏数据可能是裸字符串（非 JSON），降级当作单个模型名处理
+    logTaskWarn('AIConfig', 'model-parse-fallback', { configId })
+    const trimmed = String(raw).trim()
+    return trimmed ? [trimmed] : []
+  }
+}
+
 export function getActiveConfig(serviceType: ServiceType): AIConfig | null {
   const rows = db.select().from(schema.aiServiceConfigs)
     .where(eq(schema.aiServiceConfigs.serviceType, serviceType))
@@ -46,7 +61,7 @@ export function getActiveConfig(serviceType: ServiceType): AIConfig | null {
     return null
   }
 
-  const models = active.model ? JSON.parse(active.model) : []
+  const models = parseModels(active.model, active.id)
   logTaskProgress('AIConfig', 'active-config-selected', {
     serviceType,
     configId: active.id,
@@ -89,7 +104,7 @@ export function getConfigById(id: number): AIConfig | null {
     logTaskWarn('AIConfig', 'config-by-id-missing', { configId: id })
     return null
   }
-  const models = row.model ? JSON.parse(row.model) : []
+  const models = parseModels(row.model, id)
   logTaskProgress('AIConfig', 'config-by-id-selected', {
     configId: id,
     provider: row.provider,

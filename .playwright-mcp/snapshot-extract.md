@@ -1,0 +1,129 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - text: 返回项目
+        - generic [ref=e10]:
+          - heading "多子多福" [level=1] [ref=e11]
+          - generic [ref=e12]: 第 1 集
+          - generic [ref=e13]:
+            - generic [ref=e14]: 提取角色场景
+            - generic [ref=e15]: 9/11
+            - generic [ref=e16]: 6 角色 · 11 镜头
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - text: 刷新
+        - button "查看成片" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - text: 查看成片
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: 剧本
+            - button "原始内容" [ref=e32] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: 原始内容
+            - button "AI 改写" [ref=e38] [cursor=pointer]:
+              - img [ref=e40]
+              - generic [ref=e43]: AI 改写
+            - button "提取" [active] [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - generic [ref=e49]: 提取
+            - button "音色" [ref=e50] [cursor=pointer]:
+              - img [ref=e52]
+              - generic [ref=e55]: 音色
+            - button "分镜" [ref=e56] [cursor=pointer]:
+              - img [ref=e58]
+              - generic [ref=e61]: 分镜
+          - generic [ref=e62]:
+            - generic [ref=e63]: 制作
+            - button "角色形象" [ref=e64] [cursor=pointer]:
+              - img [ref=e66]
+              - generic [ref=e69]: 角色形象
+            - button "场景图片" [ref=e70] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e75]: 场景图片
+            - button "配音生成" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e81]: 配音生成
+            - button "镜头图片" [ref=e82] [cursor=pointer]:
+              - img [ref=e84]
+              - generic [ref=e87]: 镜头图片
+            - button "视频生成" [ref=e88] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e93]: 视频生成
+            - button "视频合成" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: 视频合成
+          - generic [ref=e100]:
+            - generic [ref=e101]: 导出
+            - button "拼接导出" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e107]: 拼接导出
+        - generic [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: 制作进度
+            - generic [ref=e112]: 9/11
+          - generic [ref=e115]:
+            - button "原始内容" [ref=e116] [cursor=pointer]
+            - button "AI 改写" [ref=e117] [cursor=pointer]
+            - button "提取" [ref=e118] [cursor=pointer]
+            - button "音色" [ref=e119] [cursor=pointer]
+            - button "分镜" [ref=e120] [cursor=pointer]
+          - button "刷新数据" [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+            - text: 刷新数据
+      - main [ref=e126]:
+        - generic [ref=e127]:
+          - button "提取角色场景" [ref=e430] [cursor=pointer]:
+            - generic [ref=e431]: 提取角色场景
+          - button "分配音色" [ref=e433] [cursor=pointer]:
+            - generic [ref=e434]: 分配音色
+          - button "角色形象" [ref=e436] [cursor=pointer]:
+            - generic [ref=e437]: 角色形象
+          - button "场景图片" [ref=e439] [cursor=pointer]:
+            - generic [ref=e440]: 场景图片
+        - generic [ref=e442]:
+          - generic [ref=e443]:
+            - generic [ref=e445]:
+              - generic [ref=e446]: "03"
+              - generic [ref=e447]: 提取角色与场景
+            - generic [ref=e448]:
+              - generic [ref=e449]: 6 角色 · 2 场景 · 0 道具
+              - button "重新提取" [ref=e450] [cursor=pointer]
+              - button "清空重提取" [ref=e454] [cursor=pointer]
+          - generic [ref=e458]:
+            - complementary [ref=e459]:
+              - generic [ref=e460]: Extraction Board
+              - generic [ref=e461]: 角色与场景结果
+              - generic [ref=e462]: 从剧本里提取出的角色和场景已经入库。这里先确认命名、定位和描述是否可直接进入后续制作。
+              - generic [ref=e463]
+              - generic [ref=e470]: 如果角色描述过于简短，后续分配音色和生成形象时建议先补充人物特征。
+            - generic [ref=e471]:
+              - generic [ref=e472]
+              - generic [ref=e478]
+            - generic [ref=e569]:
+              - generic [ref=e570]
+              - generic [ref=e576]
+            - generic [ref=e605]:
+              - generic [ref=e606]
+              - generic [ref=e615]: 暂无道具。点击右上"添加道具"手动创建，或在剧本改写时让 extractor 自动提取。
+        - generic [ref=e417]:
+          - button "AI 改写" [ref=e616] [cursor=pointer]:
+            - img [ref=e419]
+            - text: AI 改写
+          - generic [ref=e421]:
+            - button "原始内容" [ref=e422] [cursor=pointer]
+            - button "AI 改写" [ref=e423] [cursor=pointer]
+            - button "提取" [ref=e424] [cursor=pointer]
+            - button "音色" [ref=e425] [cursor=pointer]
+            - button "分镜" [ref=e426] [cursor=pointer]
+          - button "音色" [ref=e617] [cursor=pointer]:
+            - text: 音色
+            - img [ref=e428]
+  - region "Notifications alt+T":
+    - list

@@ -1,25 +1,44 @@
 const BASE = '/api/v1'
 
+// 单次请求兜底超时：避免后端长任务把前端按钮永久卡 loading
+const DEFAULT_TIMEOUT_MS = 5 * 60_000
+
 async function req<T = any>(method: string, path: string, body?: any): Promise<T> {
-  const opts: RequestInit = { method, headers: { 'Content-Type': 'application/json' } }
-  if (body) opts.body = JSON.stringify(body)
+  const hasBody = body !== undefined && method !== 'GET' && method !== 'DELETE'
+  const opts: RequestInit = {
+    method,
+    headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,
+    signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+  }
+  if (hasBody) opts.body = JSON.stringify(body)
 
   const start = performance.now()
-  console.log(`%c[API] %c${method} %c${path}`, 'color:#888', 'color:#4fc3f7;font-weight:bold', 'color:#ccc', body || '')
+  console.log(`%c[API] %c${method} %c${path}`, 'color:#888', 'color:#4fc3f7;font-weight:bold', 'color:#ccc', body ?? '')
 
   try {
     const resp = await fetch(`${BASE}${path}`, opts)
-    const json = await resp.json()
+    let json: any = null
+    try {
+      json = await resp.json()
+    } catch {
+      // 非 JSON 响应（比如 404 静态页）—— 用 status 信息构造错误
+    }
     const ms = Math.round(performance.now() - start)
 
-    if (!resp.ok || (json.code && json.code >= 400)) {
-      console.log(`%c[API] %c${method} ${path} %c${resp.status} %c${ms}ms`, 'color:#888', 'color:#ef5350', 'color:#ef5350;font-weight:bold', 'color:#888', json.message || '')
-      throw new Error(json.message || `${resp.status}`)
+    if (!resp.ok || (json && typeof json === 'object' && json.code && json.code >= 400)) {
+      const message = (json && json.message) || `HTTP ${resp.status}`
+      console.log(`%c[API] %c${method} ${path} %c${resp.status} %c${ms}ms`, 'color:#888', 'color:#ef5350', 'color:#ef5350;font-weight:bold', 'color:#888', message)
+      throw new Error(message)
     }
 
     console.log(`%c[API] %c${method} ${path} %c${resp.status} %c${ms}ms`, 'color:#888', 'color:#66bb6a', 'color:#66bb6a;font-weight:bold', 'color:#888')
-    return json.data ?? json
+    return json?.data ?? json
   } catch (err: any) {
+    if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
+      const ms = Math.round(performance.now() - start)
+      console.log(`%c[API] %c${method} ${path} %cTIMEOUT %c${ms}ms`, 'color:#888', 'color:#ef5350', 'color:#ef5350;font-weight:bold', 'color:#888')
+      throw new Error(`请求超时（${Math.round(DEFAULT_TIMEOUT_MS / 1000)}s）：${method} ${path}`)
+    }
     if (!err.message?.match(/^\d{3}$/)) {
       const ms = Math.round(performance.now() - start)
       console.log(`%c[API] %c${method} ${path} %cERROR %c${ms}ms`, 'color:#888', 'color:#ef5350', 'color:#ef5350;font-weight:bold', 'color:#888', err.message)

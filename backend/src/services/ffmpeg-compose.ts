@@ -48,6 +48,36 @@ function parseDialogueForTTS(dialogue?: string | null) {
 }
 
 /**
+ * 把秒数格式化为 SRT 时间戳 HH:MM:SS,mmm
+ *
+ * 旧实现 `Math.min(duration - 1, 59)` 对 >60 秒的镜头会生成非法时间戳，
+ * 导致 ffmpeg subtitles filter 报错或字幕被丢弃。
+ */
+function srtTimestamp(seconds: number): string {
+  const ms = Math.max(0, Math.round(seconds * 1000))
+  const h = Math.floor(ms / 3_600_000)
+  const m = Math.floor((ms % 3_600_000) / 60_000)
+  const s = Math.floor((ms % 60_000) / 1000)
+  const milli = ms % 1000
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(milli).padStart(3, '0')}`
+}
+
+/**
+ * 清洗字幕正文 — 去掉 `-->` 否则 SRT 解析器会把它当作时间分隔符；
+ * 行尾去空白；最多 2 行（避免一行字幕铺满屏幕）。
+ */
+function sanitizeSubtitleText(text: string): string {
+  return String(text || '')
+    .replace(/-->/g, '→')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .join('\n')
+}
+
+/**
  * 合成单个镜头：视频 + TTS对白音频 + 烧录字幕
  */
 export async function composeStoryboard(storyboardId: number): Promise<string> {
@@ -111,9 +141,11 @@ export async function composeStoryboard(storyboardId: number): Promise<string> {
       const srtFilename = `${uuid()}.srt`
       subtitlePath = path.join(srtDir, srtFilename)
 
-      const duration = sb.duration || 10
-      const pureText = parsedDialogue.pureText
-      const srtContent = `1\n00:00:00,500 --> 00:00:${String(Math.min(duration - 1, 59)).padStart(2, '0')},000\n${pureText}\n`
+      const duration = Math.max(1, sb.duration || 10)
+      const pureText = sanitizeSubtitleText(parsedDialogue.pureText)
+      const start = srtTimestamp(0.5)
+      const end = srtTimestamp(Math.max(0.6, duration - 0.2))
+      const srtContent = `1\n${start} --> ${end}\n${pureText}\n`
       fs.writeFileSync(subtitlePath, srtContent, 'utf-8')
 
       const srtRelative = `static/subtitles/${srtFilename}`

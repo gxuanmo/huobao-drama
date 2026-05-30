@@ -1,0 +1,281 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - button "返回项目" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+          - text: 返回项目
+        - generic [ref=e10]:
+          - heading "多子多福" [level=1] [ref=e11]
+          - generic [ref=e12]: 第 1 集
+          - generic [ref=e13]:
+            - generic [ref=e14]: 提取角色场景
+            - generic [ref=e15]: 9/11
+            - generic [ref=e16]: 6 角色 · 11 镜头
+      - generic [ref=e18]:
+        - button "刷新" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - text: 刷新
+        - button "查看成片" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - text: 查看成片
+    - generic [ref=e27]:
+      - complementary [ref=e28]:
+        - navigation [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: 剧本
+            - button "原始内容" [ref=e32] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: 原始内容
+            - button "AI 改写" [ref=e38] [cursor=pointer]:
+              - img [ref=e40]
+              - generic [ref=e43]: AI 改写
+            - button "提取" [active] [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - generic [ref=e49]: 提取
+            - button "音色" [ref=e50] [cursor=pointer]:
+              - img [ref=e52]
+              - generic [ref=e55]: 音色
+            - button "分镜" [ref=e56] [cursor=pointer]:
+              - img [ref=e58]
+              - generic [ref=e61]: 分镜
+          - generic [ref=e62]:
+            - generic [ref=e63]: 制作
+            - button "角色形象" [ref=e64] [cursor=pointer]:
+              - img [ref=e66]
+              - generic [ref=e69]: 角色形象
+            - button "场景图片" [ref=e70] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e75]: 场景图片
+            - button "配音生成" [ref=e76] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e81]: 配音生成
+            - button "镜头图片" [ref=e82] [cursor=pointer]:
+              - img [ref=e84]
+              - generic [ref=e87]: 镜头图片
+            - button "视频生成" [ref=e88] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e93]: 视频生成
+            - button "视频合成" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+              - generic [ref=e99]: 视频合成
+          - generic [ref=e100]:
+            - generic [ref=e101]: 导出
+            - button "拼接导出" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e107]: 拼接导出
+        - generic [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: 制作进度
+            - generic [ref=e112]: 9/11
+          - generic [ref=e115]:
+            - button "原始内容" [ref=e116] [cursor=pointer]
+            - button "AI 改写" [ref=e117] [cursor=pointer]
+            - button "提取" [ref=e118] [cursor=pointer]
+            - button "音色" [ref=e119] [cursor=pointer]
+            - button "分镜" [ref=e120] [cursor=pointer]
+          - button "刷新数据" [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+            - text: 刷新数据
+      - main [ref=e126]:
+        - generic [ref=e127]:
+          - button "提取角色场景" [ref=e430] [cursor=pointer]:
+            - generic [ref=e431]: 提取角色场景
+          - button "分配音色" [ref=e433] [cursor=pointer]:
+            - generic [ref=e434]: 分配音色
+          - button "角色形象" [ref=e436] [cursor=pointer]:
+            - generic [ref=e437]: 角色形象
+          - button "场景图片" [ref=e439] [cursor=pointer]:
+            - generic [ref=e440]: 场景图片
+        - generic [ref=e442]:
+          - generic [ref=e443]:
+            - generic [ref=e445]:
+              - generic [ref=e446]: "03"
+              - generic [ref=e447]: 提取角色与场景
+            - generic [ref=e448]:
+              - generic [ref=e449]: 6 角色 · 2 场景 · 0 道具
+              - button "重新提取" [ref=e450] [cursor=pointer]:
+                - img [ref=e451]
+                - text: 重新提取
+              - button "清空重提取" [ref=e454] [cursor=pointer]:
+                - img [ref=e455]
+                - text: 清空重提取
+          - generic [ref=e458]:
+            - complementary [ref=e459]:
+              - generic [ref=e460]: Extraction Board
+              - generic [ref=e461]: 角色与场景结果
+              - generic [ref=e462]: 从剧本里提取出的角色和场景已经入库。这里先确认命名、定位和描述是否可直接进入后续制作。
+              - generic [ref=e463]:
+                - generic [ref=e464]:
+                  - generic [ref=e465]: 角色
+                  - strong [ref=e466]: "6"
+                - generic [ref=e467]:
+                  - generic [ref=e468]: 场景
+                  - strong [ref=e469]: "2"
+              - generic [ref=e470]: 如果角色描述过于简短，后续分配音色和生成形象时建议先补充人物特征。
+            - generic [ref=e471]:
+              - generic [ref=e472]:
+                - img [ref=e473]
+                - generic [ref=e476]: 角色
+                - generic [ref=e477]: "6"
+              - generic [ref=e478]:
+                - generic [ref=e479]:
+                  - generic [ref=e480]:
+                    - generic [ref=e481]: 刘
+                    - generic [ref=e482]:
+                      - generic [ref=e483]:
+                        - generic [ref=e484]: 刘玄
+                        - generic [ref=e485]: 主角
+                      - generic [ref=e486]: 机智灵活、务实果断、适应力强、野心勃勃
+                  - generic [ref=e487]:
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e490]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 男性，约二十岁出头，身形修长挺拔，五官端正，剑眉星目，眼神中透着现代青年的灵动与不羁。穿越后身着修仙界常见的素色弟子服，布料朴素但整洁。体型匀称，肌肉线条紧实，长期劳作与修炼赋予他结实的身板。面部轮廓分明，下颌线清晰，笑起来时嘴角带着几分痞气与自信。
+                    - generic [ref=e491]:
+                      - generic [ref=e492]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e493]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+                - generic [ref=e494]:
+                  - generic [ref=e495]:
+                    - generic [ref=e496]: 颜
+                    - generic [ref=e497]:
+                      - generic [ref=e498]:
+                        - generic [ref=e499]: 颜清瑶
+                        - generic [ref=e500]: 配角
+                      - generic [ref=e501]: 温柔娇羞、含蓄内敛、情感细腻
+                  - generic [ref=e502]:
+                    - generic [ref=e503]:
+                      - generic [ref=e504]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e505]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 女性，约十八九岁，身姿曼妙，曲线玲珑。肌肤白皙如雪，脖颈纤细修长。一头乌黑长发如瀑般散落，发丝柔顺光泽。面容精致，眉眼如画，眼波流转间自带几分水光潋滟的柔媚。身着淡绿色薄纱裙，质地轻盈飘逸，薄纱下若隐若现的曲线更添几分朦胧美感。脸颊绯红时如桃花绽放，娇羞动人。
+                    - generic [ref=e506]:
+                      - generic [ref=e507]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e508]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+                - generic [ref=e509]:
+                  - generic [ref=e510]:
+                    - generic [ref=e511]: 李
+                    - generic [ref=e512]:
+                      - generic [ref=e513]:
+                        - generic [ref=e514]: 李华
+                        - generic [ref=e515]: 配角
+                      - generic [ref=e516]: 严肃公正、铁面无私、威严庄重
+                  - generic [ref=e517]:
+                    - generic [ref=e518]:
+                      - generic [ref=e519]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e520]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 男性，约三十余岁，身形高大魁梧，气质沉稳威严。身着红松宗执事服饰，深色长袍绣有宗门纹饰，腰间束带整齐。面容刚毅，眉宇间透着不怒自威的气势，目光锐利如刀。手持玉简，站姿笔挺，举手投足间尽显宗门执事的庄重与威严。
+                    - generic [ref=e521]:
+                      - generic [ref=e522]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e523]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+                - generic [ref=e524]:
+                  - generic [ref=e525]:
+                    - generic [ref=e526]: 人
+                    - generic [ref=e527]:
+                      - generic [ref=e528]:
+                        - generic [ref=e529]: 人群甲
+                        - generic [ref=e530]: 龙套
+                      - generic [ref=e531]: 刻薄、爱看热闹、趋炎附势
+                  - generic [ref=e532]:
+                    - generic [ref=e533]:
+                      - generic [ref=e534]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e535]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 男性弟子，约二十岁左右，身着红松宗普通弟子服饰，灰色布衣，身形中等。面容普通，表情带着明显的嘲弄与不屑，嘴角挂着讥讽的笑意。
+                    - generic [ref=e536]:
+                      - generic [ref=e537]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e538]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+                - generic [ref=e539]:
+                  - generic [ref=e540]:
+                    - generic [ref=e541]: 人
+                    - generic [ref=e542]:
+                      - generic [ref=e543]:
+                        - generic [ref=e544]: 人群乙
+                        - generic [ref=e545]: 龙套
+                      - generic [ref=e546]: 八卦、喜欢评判他人、自命清高
+                  - generic [ref=e547]:
+                    - generic [ref=e548]:
+                      - generic [ref=e549]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e550]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 男性弟子，约二十岁左右，身着红松宗普通弟子服饰，身形偏瘦。面容清秀，表情带着几分鄙夷，摇头叹息的姿态尽显不以为然。
+                    - generic [ref=e551]:
+                      - generic [ref=e552]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e553]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+                - generic [ref=e554]:
+                  - generic [ref=e555]:
+                    - generic [ref=e556]: 系
+                    - generic [ref=e557]:
+                      - generic [ref=e558]:
+                        - generic [ref=e559]: 系统音
+                        - generic [ref=e560]: 配角
+                      - generic [ref=e561]: 冰冷机械、绝对理性、无感情色彩
+                  - generic [ref=e562]:
+                    - generic [ref=e563]:
+                      - generic [ref=e564]: 外貌描述 (appearance)
+                      - textbox "外貌描述 (appearance)" [ref=e565]:
+                        - /placeholder: 例：二十岁男青年，剑眉星目，黑色长发，白色道袍...
+                        - text: 无实体存在，仅为刘玄脑海中响起的冰冷机械音，以半透明系统面板形式在虚空中显现，只有刘玄能够看见。面板散发着淡蓝色微光，文字以数据流形式滚动。
+                    - generic [ref=e566]:
+                      - generic [ref=e567]: 自定义图片 Prompt（留空则用 name + appearance 自动拼接）
+                      - textbox "自定义图片 Prompt（留空则用 name + appearance 自动拼接）" [ref=e568]:
+                        - /placeholder: 留空使用默认模板；填写后将直接作为生成角色图片的 prompt。
+            - generic [ref=e569]:
+              - generic [ref=e570]:
+                - img [ref=e571]
+                - generic [ref=e574]: 场景
+                - generic [ref=e575]: "2"
+              - generic [ref=e576]:
+                - generic [ref=e577]:
+                  - generic [ref=e578]:
+                    - img [ref=e580]
+                    - generic [ref=e584]:
+                      - generic [ref=e585]: 红松宗考核幻境
+                      - generic [ref=e586]: 正午
+                  - generic [ref=e588]:
+                    - generic [ref=e589]: 场景图片 Prompt（直接用于生成场景图）
+                    - textbox "场景图片 Prompt（直接用于生成场景图）" [ref=e590]:
+                      - /placeholder: 描述这个场景的视觉内容...
+                      - text: Interior of an ancient Chinese fantasy illusion room, a five-meter-wide carved antique bed with flowing light gauze curtains, warm ambiguous candlelight creating a dreamy intimate atmosphere, soft diffused lighting, romantic and ethereal mood, traditional Chinese bedroom setting, cinematic lighting, 4k quality
+                - generic [ref=e591]:
+                  - generic [ref=e592]:
+                    - img [ref=e594]
+                    - generic [ref=e598]:
+                      - generic [ref=e599]: 红松宗考核大殿
+                      - generic [ref=e600]: 正午
+                  - generic [ref=e602]:
+                    - generic [ref=e603]: 场景图片 Prompt（直接用于生成场景图）
+                    - textbox "场景图片 Prompt（直接用于生成场景图）" [ref=e604]:
+                      - /placeholder: 描述这个场景的视觉内容...
+                      - text: Interior of a grand ancient Chinese cultivation sect assessment hall, white jade platform in the center, traditional Chinese architecture with wooden pillars and carved beams, noon sunlight streaming through high windows creating dramatic light beams, crowded with disciples in ancient Chinese clothing, formal and tense atmosphere, grand scale, cinematic composition, warm golden lighting, 4k quality
+            - generic [ref=e605]:
+              - generic [ref=e606]:
+                - img [ref=e607]
+                - generic [ref=e611]: 道具
+                - generic [ref=e612]: "0"
+                - button "添加道具" [ref=e613] [cursor=pointer]:
+                  - img [ref=e614]
+                  - text: 添加道具
+              - generic [ref=e615]: 暂无道具。点击右上"添加道具"手动创建，或在剧本改写时让 extractor 自动提取。
+        - generic [ref=e417]:
+          - button "AI 改写" [ref=e616] [cursor=pointer]:
+            - img [ref=e419]
+            - text: AI 改写
+          - generic [ref=e421]:
+            - button "原始内容" [ref=e422] [cursor=pointer]
+            - button "AI 改写" [ref=e423] [cursor=pointer]
+            - button "提取" [ref=e424] [cursor=pointer]
+            - button "音色" [ref=e425] [cursor=pointer]
+            - button "分镜" [ref=e426] [cursor=pointer]
+          - button "音色" [ref=e617] [cursor=pointer]:
+            - text: 音色
+            - img [ref=e428]
+  - region "Notifications alt+T":
+    - list

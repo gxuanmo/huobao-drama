@@ -20,6 +20,7 @@ skills/    — Agent SKILL.md definitions
 - `npm run dev` — Start dev server with tsx watch (port 5679)
 - `npm start` — Start production server
 - `npm run typecheck` — TypeScript type checking
+- `npm test` — Run vitest tests
 
 ### Frontend (`frontend/`)
 - `npm run dev` — Vite dev server (port 3013, proxies /api to 5679)
